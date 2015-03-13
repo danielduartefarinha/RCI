@@ -6,6 +6,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <string.h>
+#include <unistd.h>
 
 int main(int argc, char ** argv){
 	int fd,n, i, addrlen;
@@ -24,35 +25,26 @@ int main(int argc, char ** argv){
 	if(argc > 7){
 		printf("Incorrect number of arguments\n");
 		exit(-1);
-	}/*else{
-		
-		
-		if((argv[1][0] != '-' || argv[3][0] != '-' || argv[5][0] != '-') || (argv[2][0] == '-' || argv[4][0] == '-' || argv[6][0] == '-')){
-			printf("arguments not valid\n");
-			exit(-2);
-		}
-	}*/
-	
+	}
 	
 	
 	//Trata argumentos
 	
-	for(i=0; i<7; i++){
+	for(i = 1; i < argc-1; i++){
 		if (strcmp(argv[i],"-t")==0){
 			if(argv[i+1][0] == '-') continue;
 			strcpy(ringport, argv[i+1]);
 		}
-		if (strcmp(argv[i], "-i") == 0)){
+		if (strcmp(argv[i], "-i") == 0){
 			if(argv[i+1][0] == '-') continue;
 			strcpy(bootip, argv[i+1]);
 		}
 		if (strcmp(argv[i], "-p") == 0){
 			if(argv[i+1][0] == '-') continue;
-			sscanf(argv[i+1], "%d", &bootport);
+			n = sscanf(argv[i+1], "%d", &bootport);
+			if (n != 1) exit(2);
 		}
 	}
-	
-	printf("%s %s %d\n", ringport, bootip, bootport);
 	
 	fd=socket(AF_INET, SOCK_DGRAM,0);
 	if(fd==-1)exit(1);
