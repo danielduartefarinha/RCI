@@ -22,15 +22,13 @@ int main(int argc, char ** argv){
 		printf("Incorrect number of arguments\n");
 		exit(-1);
 	}else{
-		if((argv[1][0] != '-' || argv[3][0] != '-' || argv[5][0] != '-') || (argv[2][0] == '-' || argv[4][0] == '-' || argv[6][0] == '-')){
-			printf("Invalid arguments. Format must be [-t ringport] [-i bootIP] [-p bootport]\n");
+		if((argv[1][0] != '-' || argv[3][0] != '-' || argv[5][0] != '-') && (argv[2][0] != '-' || argv[4][0] != '-' || argv[6][0] != '-')){
+			printf("arguments not valid\n");
 			exit(-2);
 		}
 	}
 	
-	
-	
-	exit(1);
+	exit(0);
 		
 	
 	
