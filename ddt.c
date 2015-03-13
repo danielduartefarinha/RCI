@@ -8,41 +8,63 @@
 #include <string.h>
 
 int main(int argc, char ** argv){
-	int fd,n, addrlen;
+	int fd,n, i, addrlen;
 	struct sockaddr_in addr;
 	struct in_addr *a;
 	struct hostent *h;
 	char buffer[128];
+	char ringport[32];
+	char bootip[100] = "tejo.tecnico.utlisboa.pt";
+	int bootport = 58000;
 	
 	
 	//ERROS
 	
 	
-	if(argc != 7){
+	if(argc > 7){
 		printf("Incorrect number of arguments\n");
 		exit(-1);
-	}else{
-		if((argv[1][0] != '-' || argv[3][0] != '-' || argv[5][0] != '-') && (argv[2][0] != '-' || argv[4][0] != '-' || argv[6][0] != '-')){
+	}/*else{
+		
+		
+		if((argv[1][0] != '-' || argv[3][0] != '-' || argv[5][0] != '-') || (argv[2][0] == '-' || argv[4][0] == '-' || argv[6][0] == '-')){
 			printf("arguments not valid\n");
 			exit(-2);
 		}
+	}*/
+	
+	
+	
+	//Trata argumentos
+	
+	for(i=0; i<7; i++){
+		if (strcmp(argv[i],"-t")==0){
+			if(argv[i+1][0] == '-') continue;
+			strcpy(ringport, argv[i+1]);
+		}
+		if (strcmp(argv[i], "-i") == 0)){
+			if(argv[i+1][0] == '-') continue;
+			strcpy(bootip, argv[i+1]);
+		}
+		if (strcmp(argv[i], "-p") == 0){
+			if(argv[i+1][0] == '-') continue;
+			sscanf(argv[i+1], "%d", &bootport);
+		}
 	}
 	
-	exit(0);
-		
-	
+	printf("%s %s %d\n", ringport, bootip, bootport);
 	
 	fd=socket(AF_INET, SOCK_DGRAM,0);
 	if(fd==-1)exit(1);
 	printf("%d\n", fd);
  
-	if((h = gethostbyname("tejo.tecnico.ulisboa.pt"))==NULL)exit(1);	
+	if((h = gethostbyname(bootip))==NULL)exit(1);	
 	a=(struct in_addr*)h->h_addr_list[0];
 	
 	memset((void*)&addr,(int)'\0', sizeof(addr));
 	addr.sin_family=AF_INET;
 	addr.sin_addr= *a;
-	addr.sin_port=htons(58000);
+	addr.sin_port=htons(bootport);
 	
 	n=sendto(fd,"BQRY 60",50,0,(struct sockaddr*)&addr, sizeof(addr));
 	if(n==-1)exit(1);
