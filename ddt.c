@@ -10,7 +10,7 @@
 
 typedef struct node_data{
 	int  id;
-	char ip[128];
+	char ip[128]; // talvez uma estrutura do tip addr? é a usada nas funções
 	int tcp;	
 } node_data;
 
@@ -18,7 +18,12 @@ typedef struct node{
 	node_data id;
 	node_data predi;
 	node_data succi;
-} node; 
+} node;
+
+ typedef struct host_data{
+	 char bootip[128];
+	 int bootport;
+ } boot;
 
 int main(int argc, char ** argv){
 	int fd,n, i, addrlen;
