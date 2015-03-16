@@ -8,6 +8,18 @@
 #include <string.h>
 #include <unistd.h>
 
+typedef struct node_data{
+	int  id;
+	char ip[128];
+	int tcp;	
+} node_data;
+
+typedef struct node{
+	node_data id;
+	node_data predi;
+	node_data succi;
+} node; 
+
 int main(int argc, char ** argv){
 	int fd,n, i, addrlen;
 	struct sockaddr_in addr;
@@ -15,18 +27,16 @@ int main(int argc, char ** argv){
 	struct hostent *h;
 	char buffer[128];
 	char ringport[32];
-	char bootip[100] = "tejo.tecnico.utlisboa.pt";
+	char bootip[128] = "tejo.tecnico.utlisboa.pt";
 	int bootport = 58000;
-	
+	node self;
 	
 	//ERROS
-	
 	
 	if(argc > 7){
 		printf("Incorrect number of arguments\n");
 		exit(-1);
 	}
-	
 	
 	//Trata argumentos
 	
