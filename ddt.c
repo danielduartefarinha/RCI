@@ -21,20 +21,37 @@ typedef struct node{
 } node;
 
  typedef struct host_data{
-	 char bootip[128];
-	 int bootport;
+	struct sockaddr_in addr;;
  } boot;
+
+boot getBoot(char * bootip, int bootport){
+	boot newBoot;
+	
+	struct hostent *h;
+	struct in_addr *a;
+	struct sockaddr_in addr;
+	
+	if((h = gethostbyname(bootip))==NULL)exit(1);	
+	a=(struct in_addr*)h->h_addr_list[0];
+	
+	memset((void*)&addr,(int)'\0', sizeof(addr));
+	addr.sin_family=AF_INET;
+	addr.sin_addr= *a;
+	addr.sin_port=htons(bootport);
+	
+	newBoot.addr = addr;
+	return newBoot;
+}
 
 int main(int argc, char ** argv){
 	int fd,n, i, addrlen;
-	struct sockaddr_in addr;
-	struct in_addr *a;
 	struct hostent *h;
 	char buffer[128];
 	char ringport[32];
 	char bootip[128] = "tejo.tecnico.utlisboa.pt";
 	int bootport = 58000;
-	node self;
+	// node self;
+	boot udp_server;
 	
 	//ERROS
 	
@@ -64,33 +81,27 @@ int main(int argc, char ** argv){
 	fd=socket(AF_INET, SOCK_DGRAM,0);
 	if(fd==-1)exit(1);
 	printf("%d\n", fd);
- 
-	if((h = gethostbyname(bootip))==NULL)exit(1);	
-	a=(struct in_addr*)h->h_addr_list[0];
-	
-	memset((void*)&addr,(int)'\0', sizeof(addr));
-	addr.sin_family=AF_INET;
-	addr.sin_addr= *a;
-	addr.sin_port=htons(bootport);
-	
-	n=sendto(fd,"BQRY 60",50,0,(struct sockaddr*)&addr, sizeof(addr));
+
+	udp_server = getBoot(bootip, bootport);
+
+	n=sendto(fd,"BQRY 60",50,0,(struct sockaddr*)&udp_server.addr, sizeof(udp_server.addr));
 	if(n==-1)exit(1);
 
-	addrlen=sizeof(addr);
-	n = recvfrom(fd,buffer,128,0,(struct sockaddr*)&addr,&addrlen);
+	addrlen=sizeof(udp_server.addr);
+	n = recvfrom(fd,buffer,128,0,(struct sockaddr*)&udp_server.addr,&addrlen);
 	if(n==-1)exit(1);
 	
 	if(strcmp(buffer, "EMPTY")==0){
 		printf("EMPTY\nbora fazer um REG\n");
-		n=sendto(fd,"REG 6 1 faribling 93",50,0,(struct sockaddr*)&addr, sizeof(addr));
+		n=sendto(fd,"REG 6 1 faribling 93",50,0,(struct sockaddr*)&udp_server.addr, sizeof(udp_server.addr));
 		if(n==-1)exit(1);
 	}
 	
-	h=gethostbyaddr(&addr.sin_addr, sizeof(addr.sin_addr), AF_INET);
+	h=gethostbyaddr(&udp_server.addr.sin_addr, sizeof(udp_server.addr.sin_addr), AF_INET);
 	if(h==NULL)
-		printf("set by [%s:%hu]\n", inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
+		printf("set by [%s:%hu]\n", inet_ntoa(udp_server.addr.sin_addr), ntohs(udp_server.addr.sin_port));
 	else
-		printf("sent by [%s:%hu]\n", h->h_name, ntohs(addr.sin_port));	
+		printf("sent by [%s:%hu]\n", h->h_name, ntohs(udp_server.addr.sin_port));	
 	
 	close(fd);
 	
