@@ -21,7 +21,7 @@ typedef struct node{
 } node;
 
  typedef struct host_data{
-	struct sockaddr_in addr;;
+	struct sockaddr_in addr;
  } boot;
 
 boot getBoot(char * bootip, int bootport){
@@ -45,7 +45,6 @@ boot getBoot(char * bootip, int bootport){
 
 int main(int argc, char ** argv){
 	int fd,n, i, addrlen;
-	struct hostent *h;
 	char buffer[128];
 	char ringport[32];
 	char bootip[128] = "tejo.tecnico.utlisboa.pt";
@@ -96,12 +95,6 @@ int main(int argc, char ** argv){
 		n=sendto(fd,"REG 6 1 faribling 93",50,0,(struct sockaddr*)&udp_server.addr, sizeof(udp_server.addr));
 		if(n==-1)exit(1);
 	}
-	
-	h=gethostbyaddr(&udp_server.addr.sin_addr, sizeof(udp_server.addr.sin_addr), AF_INET);
-	if(h==NULL)
-		printf("set by [%s:%hu]\n", inet_ntoa(udp_server.addr.sin_addr), ntohs(udp_server.addr.sin_port));
-	else
-		printf("sent by [%s:%hu]\n", h->h_name, ntohs(udp_server.addr.sin_port));	
 	
 	close(fd);
 	
