@@ -9,24 +9,22 @@
 #include <unistd.h>
 
 typedef struct node_data{
-	int  id;
-	char ip[128]; // talvez uma estrutura do tip addr? é a usada nas funções
-	int tcp;	
+	int  id;	
+	struct sockaddr_in addr;
 } node_data;
 
 typedef struct node{
 	node_data id;
 	node_data predi;
 	node_data succi;
+	struct sockaddr_in udp_server;
 } node;
 
 typedef struct host_data{
 	struct sockaddr_in addr;
  } boot;
 
-boot getBoot(char * bootip, int bootport){
-	boot newBoot;
-	
+struct sockaddr_in getIP(char * bootip, int bootport){
 	struct hostent *h;
 	struct in_addr *a;
 	struct sockaddr_in addr;
@@ -38,35 +36,36 @@ boot getBoot(char * bootip, int bootport){
 	addr.sin_family=AF_INET;
 	addr.sin_addr= *a;
 	addr.sin_port=htons(bootport);
-	
-	newBoot.addr = addr;
-	return newBoot;
+
+	return addr;
 }
 
-int join(boot udp_server, node * self, int x, int i){
+int join(node * self, int x){
 	char buffer[128];
 	
-		
-  	n=sendto(fd,"BQRY 60",50,0,(struct sockaddr*)&udp_server.addr, sizeof(udp_server.addr));
+	sprintf(buffer, "BQRY %d", x);
+  	n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
 	if(n==-1)exit(1);
 
-	addrlen=sizeof(udp_server.addr);
-	n = recvfrom(fd,buffer,128,0,(struct sockaddr*)&udp_server.addr,&addrlen);
+	addrlen=sizeof(self->udp_server);
+	n = recvfrom(fd,buffer,128,0,(struct sockaddr*)&self->udp_server,&addrlen);
 	if(n==-1)exit(1);
+	
 	
 	if(strcmp(buffer, "EMPTY")==0){
 		printf("EMPTY\nbora fazer um REG\n");
-		n=sendto(fd,"REG 6 1 faribling 93",50,0,(struct sockaddr*)&udp_server.addr, sizeof(udp_server.addr));
+		sprintf(buffer, "REG %d %d %s %hu", x, self->id.id, inet_ntoa(self->id.addr.sin_addr),ntohs(self->id.addr.sin_port));
+		n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
 		if(n==-1)exit(1);
 	}
 }
 
 
-int switch_cmd(char * command, boot udp_server, node * self){
+int switch_cmd(char * command, node * self){
 	char buffer[128], succiIP[128], succiTCP[128];
 	int n, x, i, succi;
 	
-	n = sscanf(command, "%s %d %d %d %s %s", buffer, &x, &i, &succi, succiIP, succiTCP);
+	n = sscanf(command, "%s %d %d %d %s %s", buffer, &x, &self->id.id, &succi, succiIP, succiTCP);
 	switch(n){
 		case(1):
 			if(strcmp(buffer, "leave") == 0){
@@ -120,8 +119,7 @@ int main(int argc, char ** argv){
 	char bootip[128] = "tejo.tecnico.utlisboa.pt";
 	int bootport = 58000;
 	node self;
-	boot udp_server;
-	
+		
 	//ERROS
 	
 	if(argc > 7){
@@ -147,16 +145,21 @@ int main(int argc, char ** argv){
 		}
 	}
 	
+	if(gethostname(buffer,128)==-1)
+		printf("error: %s\n", strerror(errno));
+	
+	
 	fd=socket(AF_INET, SOCK_DGRAM,0);
 	if(fd==-1)exit(1);
 	printf("%d\n", fd);
 
-	udp_server = getBoot(bootip, bootport);
+	self.udp_server = getIP(bootip, bootport);
+	self.id.addr = getIP(buffer, ringport);
 	
 	printf("Esperando um comando (join, leave, show, search, exit)\n");
 	
 	while(fgets(instruction, 128, stdin) != NULL){
-		err = switch_cmd(instruction, udp_server, &self);
+		err = switch_cmd(instruction, &self);
 			if (err == 1) exit(0) //código de erro
 	}
 	
