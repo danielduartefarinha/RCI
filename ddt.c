@@ -43,9 +43,26 @@ boot getBoot(char * bootip, int bootport){
 	return newBoot;
 }
 
+/* 	Função Join Protótipo
+ * 
+ * 	n=sendto(fd,"BQRY 60",50,0,(struct sockaddr*)&udp_server.addr, sizeof(udp_server.addr));
+	if(n==-1)exit(1);
+
+	addrlen=sizeof(udp_server.addr);
+	n = recvfrom(fd,buffer,128,0,(struct sockaddr*)&udp_server.addr,&addrlen);
+	if(n==-1)exit(1);
+	
+	if(strcmp(buffer, "EMPTY")==0){
+		printf("EMPTY\nbora fazer um REG\n");
+		n=sendto(fd,"REG 6 1 faribling 93",50,0,(struct sockaddr*)&udp_server.addr, sizeof(udp_server.addr));
+		if(n==-1)exit(1);
+	}
+
+*/
+
 int main(int argc, char ** argv){
 	int fd,n, i, addrlen;
-	char buffer[128];
+	char buffer[128], instruction[128];
 	char ringport[32];
 	char bootip[128] = "tejo.tecnico.utlisboa.pt";
 	int bootport = 58000;
@@ -82,18 +99,10 @@ int main(int argc, char ** argv){
 	printf("%d\n", fd);
 
 	udp_server = getBoot(bootip, bootport);
-
-	n=sendto(fd,"BQRY 60",50,0,(struct sockaddr*)&udp_server.addr, sizeof(udp_server.addr));
-	if(n==-1)exit(1);
-
-	addrlen=sizeof(udp_server.addr);
-	n = recvfrom(fd,buffer,128,0,(struct sockaddr*)&udp_server.addr,&addrlen);
-	if(n==-1)exit(1);
 	
-	if(strcmp(buffer, "EMPTY")==0){
-		printf("EMPTY\nbora fazer um REG\n");
-		n=sendto(fd,"REG 6 1 faribling 93",50,0,(struct sockaddr*)&udp_server.addr, sizeof(udp_server.addr));
-		if(n==-1)exit(1);
+	while(1){
+		
+
 	}
 	
 	close(fd);
