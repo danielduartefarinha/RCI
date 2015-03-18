@@ -20,7 +20,7 @@ typedef struct node{
 	node_data succi;
 } node;
 
- typedef struct host_data{
+typedef struct host_data{
 	struct sockaddr_in addr;
  } boot;
 
@@ -43,9 +43,11 @@ boot getBoot(char * bootip, int bootport){
 	return newBoot;
 }
 
-/* 	Função Join Protótipo
- * 
- * 	n=sendto(fd,"BQRY 60",50,0,(struct sockaddr*)&udp_server.addr, sizeof(udp_server.addr));
+int join(boot udp_server, node * self, int x, int i){
+	char buffer[128];
+	
+		
+  	n=sendto(fd,"BQRY 60",50,0,(struct sockaddr*)&udp_server.addr, sizeof(udp_server.addr));
 	if(n==-1)exit(1);
 
 	addrlen=sizeof(udp_server.addr);
@@ -57,16 +59,67 @@ boot getBoot(char * bootip, int bootport){
 		n=sendto(fd,"REG 6 1 faribling 93",50,0,(struct sockaddr*)&udp_server.addr, sizeof(udp_server.addr));
 		if(n==-1)exit(1);
 	}
+}
 
-*/
+
+int switch_cmd(char * command, boot udp_server, node * self){
+	char buffer[128], succiIP[128], succiTCP[128];
+	int n, x, i, succi;
+	
+	n = sscanf(command, "%s %d %d %d %s %s", buffer, &x, &i, &succi, succiIP, succiTCP);
+	switch(n){
+		case(1):
+			if(strcmp(buffer, "leave") == 0){
+				// Função de saída do anel
+			}else{
+				if(strcmp(buffer, "show") == 0){
+					// Função de listagem de informações
+				}else{
+					if(strcmp(buffer, "exit") == 0){
+						// O utilizador fecha a aplicação
+					}else{
+						printf("%s não é um comando válido, ou faltam argumentos\n", buffer);
+					}
+				}
+			}
+			break;
+		case(2):
+			if(strcmp(buffer, "search") == 0){
+				// Função de procura de um identificador k, neste caso, o inteiro x
+			}else{
+				printf("%s não é um comando válido, ou faltam argumentos\n", buffer);
+			}
+			break;
+		case(3):
+			if(strcmp(buffer, "join") == 0){
+				// Função de entrada no anel x, como identificador i
+				
+			}else{
+				printf("%s não é um comando válido, ou faltam argumentos\n", buffer);
+			}
+			break;
+		case(6):
+			if(strcmp(buffer, "join") == 0){
+				// Função de entrada no anel x, como identificador i, sabendo succi
+			}else{
+				printf("%s não é um comando válido, ou faltam argumentos\n", buffer);
+			}
+			break;
+		default:
+			printf("%s não é um comando válido, ou faltam argumentos\n", buffer);
+			break;
+	}
+	
+}
+
 
 int main(int argc, char ** argv){
-	int fd,n, i, addrlen;
+	int fd,n, i, err, addrlen;
 	char buffer[128], instruction[128];
 	char ringport[32];
 	char bootip[128] = "tejo.tecnico.utlisboa.pt";
 	int bootport = 58000;
-	// node self;
+	node self;
 	boot udp_server;
 	
 	//ERROS
@@ -100,9 +153,11 @@ int main(int argc, char ** argv){
 
 	udp_server = getBoot(bootip, bootport);
 	
-	while(1){
-		
-
+	printf("Esperando um comando (join, leave, show, search, exit)\n");
+	
+	while(fgets(instruction, 128, stdin) != NULL){
+		err = switch_cmd(instruction, udp_server, &self);
+			if (err == 1) exit(0) //código de erro
 	}
 	
 	close(fd);
