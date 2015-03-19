@@ -20,10 +20,6 @@ typedef struct node{
 	struct sockaddr_in udp_server;
 } node;
 
-typedef struct host_data{
-	struct sockaddr_in addr;
- } boot;
-
 struct sockaddr_in getIP(char * bootip, int bootport){
 	struct hostent *h;
 	struct in_addr *a;
@@ -57,25 +53,35 @@ int join(node * self, int x){
 		sprintf(buffer, "REG %d %d %s %hu", x, self->id.id, inet_ntoa(self->id.addr.sin_addr),ntohs(self->id.addr.sin_port));
 		n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
 		if(n==-1)exit(1);
+		n = recvfrom(fd,buffer,128,0,(struct sockaddr*)&self->udp_server,&addrlen);
+		if(n==-1)exit(1);
+		if (strcmp(buffer, "OK") == 0){
+			printf("Anel %d criado\n", x);
+			return 0;
+		}
 	}
+	printf("Anel %d já existente\n", x);
+	return 0;
 }
-
 
 int switch_cmd(char * command, node * self){
 	char buffer[128], succiIP[128], succiTCP[128];
-	int n, x, i, succi;
+	int n, x, succi;
 	
 	n = sscanf(command, "%s %d %d %d %s %s", buffer, &x, &self->id.id, &succi, succiIP, succiTCP);
 	switch(n){
 		case(1):
 			if(strcmp(buffer, "leave") == 0){
 				// Função de saída do anel
+				printf("Função ainda não implementada\n");
 			}else{
 				if(strcmp(buffer, "show") == 0){
 					// Função de listagem de informações
+					printf("Função ainda não implementada\n");
 				}else{
 					if(strcmp(buffer, "exit") == 0){
 						// O utilizador fecha a aplicação
+						printf("Função ainda não implementada\n");
 					}else{
 						printf("%s não é um comando válido, ou faltam argumentos\n", buffer);
 					}
@@ -85,14 +91,14 @@ int switch_cmd(char * command, node * self){
 		case(2):
 			if(strcmp(buffer, "search") == 0){
 				// Função de procura de um identificador k, neste caso, o inteiro x
+				printf("Função ainda não implementada\n");
 			}else{
 				printf("%s não é um comando válido, ou faltam argumentos\n", buffer);
 			}
 			break;
 		case(3):
 			if(strcmp(buffer, "join") == 0){
-				// Função de entrada no anel x, como identificador i
-				
+				n = join(self, x);
 			}else{
 				printf("%s não é um comando válido, ou faltam argumentos\n", buffer);
 			}
@@ -100,6 +106,7 @@ int switch_cmd(char * command, node * self){
 		case(6):
 			if(strcmp(buffer, "join") == 0){
 				// Função de entrada no anel x, como identificador i, sabendo succi
+				printf("Função ainda não implementada\n");
 			}else{
 				printf("%s não é um comando válido, ou faltam argumentos\n", buffer);
 			}
@@ -110,7 +117,6 @@ int switch_cmd(char * command, node * self){
 	}
 	
 }
-
 
 int main(int argc, char ** argv){
 	int fd,n, i, err, addrlen;
@@ -145,15 +151,12 @@ int main(int argc, char ** argv){
 		}
 	}
 	
-	if(gethostname(buffer,128)==-1)
-		printf("error: %s\n", strerror(errno));
-	
-	
 	fd=socket(AF_INET, SOCK_DGRAM,0);
 	if(fd==-1)exit(1);
 	printf("%d\n", fd);
 
 	self.udp_server = getIP(bootip, bootport);
+	if(gethostname(buffer,128)==-1) printf("error: %s\n", strerror(errno));
 	self.id.addr = getIP(buffer, ringport);
 	
 	printf("Esperando um comando (join, leave, show, search, exit)\n");
