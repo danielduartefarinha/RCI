@@ -37,7 +37,11 @@ struct sockaddr_in getIP(char * bootip, int bootport){
 }
 
 int join(node * self, int x){
+	int fd, addrlen, n;
 	char buffer[128];
+	
+	fd=socket(AF_INET, SOCK_DGRAM,0);
+	if(fd==-1)exit(1);
 	
 	sprintf(buffer, "BQRY %d", x);
   	n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
@@ -57,11 +61,13 @@ int join(node * self, int x){
 		if(n==-1)exit(1);
 		if (strcmp(buffer, "OK") == 0){
 			printf("Anel %d criado\n", x);
+			close(fd);
 			return 0;
 		}
 	}
+	close(fd);
 	printf("Anel %d já existente\n", x);
-	return 0;
+	return 1;
 }
 
 int switch_cmd(char * command, node * self){
@@ -115,13 +121,13 @@ int switch_cmd(char * command, node * self){
 			printf("%s não é um comando válido, ou faltam argumentos\n", buffer);
 			break;
 	}
+	return 0;
 	
 }
 
 int main(int argc, char ** argv){
-	int fd,n, i, err, addrlen;
+	int n, i, err, errno, ringport;
 	char buffer[128], instruction[128];
-	char ringport[32];
 	char bootip[128] = "tejo.tecnico.utlisboa.pt";
 	int bootport = 58000;
 	node self;
@@ -138,7 +144,8 @@ int main(int argc, char ** argv){
 	for(i = 1; i < argc-1; i++){
 		if (strcmp(argv[i],"-t")==0){
 			if(argv[i+1][0] == '-') continue;
-			strcpy(ringport, argv[i+1]);
+			n = sscanf(argv[i+1], "%d", &ringport);
+			if (n != 1) exit(2);
 		}
 		if (strcmp(argv[i], "-i") == 0){
 			if(argv[i+1][0] == '-') continue;
@@ -150,10 +157,6 @@ int main(int argc, char ** argv){
 			if (n != 1) exit(2);
 		}
 	}
-	
-	fd=socket(AF_INET, SOCK_DGRAM,0);
-	if(fd==-1)exit(1);
-	printf("%d\n", fd);
 
 	self.udp_server = getIP(bootip, bootport);
 	if(gethostname(buffer,128)==-1) printf("error: %s\n", strerror(errno));
@@ -163,9 +166,8 @@ int main(int argc, char ** argv){
 	
 	while(fgets(instruction, 128, stdin) != NULL){
 		err = switch_cmd(instruction, &self);
-			if (err == 1) exit(0) //código de erro
+			if (err == 1) exit(1); //código de erro
 	}
-	
-	close(fd);
-	
+	exit(0);
 }
+
