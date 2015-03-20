@@ -18,6 +18,7 @@ typedef struct node{
 	node_data predi;
 	node_data succi;
 	struct sockaddr_in udp_server;
+	int ring;
 } node;
 
 struct sockaddr_in getIP(char * bootip, int bootport){
@@ -65,6 +66,7 @@ int join(node * self, int x){
 		if(n==-1)exit(1);
 		if (strcmp(buffer, "OK") == 0){
 			printf("Anel %d criado\n", x);
+			self->ring = x;
 			close(fd);
 			return 0;
 		}
@@ -74,16 +76,47 @@ int join(node * self, int x){
 	return 1;
 }
 
+int leave(node * self){	
+	int fd, addrlen, n;
+	char buffer[128];
+	
+	if (self->ring == -1){
+		printf("O nó não está inserido em nenhum anel\n");
+		return 1;
+	}
+	
+	fd=socket(AF_INET, SOCK_DGRAM,0);
+	if(fd==-1)exit(1);
+	
+	sprintf(buffer, "UNR %d", self->ring);
+  	n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
+	if(n==-1)exit(1);
+
+	memset(buffer, '\0', 128);
+
+	addrlen=sizeof(self->udp_server);
+	n = recvfrom(fd,buffer,128,0,(struct sockaddr*)&self->udp_server,&addrlen);
+	if(n==-1)exit(1);
+	
+	if(strcmp(buffer, "OK")==0){
+		printf("Anel %d apagado\n", self->ring);
+		self->ring = -1;
+		close(fd);
+		return 0;
+	}
+	printf("Ocorreu algum problema\n");
+	return 1;
+}
+
 int switch_cmd(char * command, node * self){
 	char buffer[128], succiIP[128], succiTCP[128];
-	int n, x, succi;
+	int n, err, x, succi;
 	
 	n = sscanf(command, "%s %d %d %d %s %s", buffer, &x, &self->id.id, &succi, succiIP, succiTCP);
 	switch(n){
 		case(1):
 			if(strcmp(buffer, "leave") == 0){
-				// Função de saída do anel
-				printf("Função ainda não implementada\n");
+				err = leave(self);
 			}else{
 				if(strcmp(buffer, "show") == 0){
 					// Função de listagem de informações
@@ -108,7 +141,7 @@ int switch_cmd(char * command, node * self){
 			break;
 		case(3):
 			if(strcmp(buffer, "join") == 0){
-				n = join(self, x);
+				err = join(self, x);
 			}else{
 				printf("%s não é um comando válido, ou faltam argumentos\n", buffer);
 			}
@@ -126,7 +159,6 @@ int switch_cmd(char * command, node * self){
 			break;
 	}
 	return 0;
-	
 }
 
 int main(int argc, char ** argv){
@@ -168,6 +200,7 @@ int main(int argc, char ** argv){
 	
 	printf("Esperando um comando (join, leave, show, search, exit)\n");
 	
+	self.ring = -1;
 	while(fgets(instruction, 128, stdin) != NULL){
 		err = switch_cmd(instruction, &self);
 			if (err == 1) exit(1); //código de erro
