@@ -25,7 +25,9 @@ struct sockaddr_in getIP(char * bootip, int bootport){
 	struct in_addr *a;
 	struct sockaddr_in addr;
 	
-	if((h = gethostbyname(bootip))==NULL)exit(1);	
+	if((h = gethostbyname(bootip))==NULL){
+		exit(1);
+	}	
 	a=(struct in_addr*)h->h_addr_list[0];
 	
 	memset((void*)&addr,(int)'\0', sizeof(addr));
@@ -47,16 +49,18 @@ int join(node * self, int x){
   	n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
 	if(n==-1)exit(1);
 
+	memset(buffer, '\0', 128);
+
 	addrlen=sizeof(self->udp_server);
 	n = recvfrom(fd,buffer,128,0,(struct sockaddr*)&self->udp_server,&addrlen);
 	if(n==-1)exit(1);
-	
 	
 	if(strcmp(buffer, "EMPTY")==0){
 		printf("EMPTY\nbora fazer um REG\n");
 		sprintf(buffer, "REG %d %d %s %hu", x, self->id.id, inet_ntoa(self->id.addr.sin_addr),ntohs(self->id.addr.sin_port));
 		n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
 		if(n==-1)exit(1);
+		memset(buffer, '\0', 128);
 		n = recvfrom(fd,buffer,128,0,(struct sockaddr*)&self->udp_server,&addrlen);
 		if(n==-1)exit(1);
 		if (strcmp(buffer, "OK") == 0){
@@ -128,7 +132,7 @@ int switch_cmd(char * command, node * self){
 int main(int argc, char ** argv){
 	int n, i, err, errno, ringport;
 	char buffer[128], instruction[128];
-	char bootip[128] = "tejo.tecnico.utlisboa.pt";
+	char bootip[128] = "tejo.tecnico.ulisboa.pt";
 	int bootport = 58000;
 	node self;
 		
