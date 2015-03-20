@@ -108,6 +108,13 @@ int leave(node * self){
 	return 1;
 }
 
+void exit_app(node * self){
+	leave(self);
+	// Fazer frees à memória alocada
+	printf("A sair da aplicação.\n");
+	exit(0);
+}
+
 int switch_cmd(char * command, node * self){
 	char buffer[128], succiIP[128], succiTCP[128];
 	int n, err, x, succi;
@@ -123,8 +130,7 @@ int switch_cmd(char * command, node * self){
 					printf("Função ainda não implementada\n");
 				}else{
 					if(strcmp(buffer, "exit") == 0){
-						// O utilizador fecha a aplicação
-						printf("Função ainda não implementada\n");
+						exit_app(self);
 					}else{
 						printf("%s não é um comando válido, ou faltam argumentos\n", buffer);
 					}
