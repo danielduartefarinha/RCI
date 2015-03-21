@@ -16,23 +16,26 @@ typedef struct node_data{
 	struct sockaddr_in addr;
 } node_data;
 
+typedef struct sockets{
+	int keyboard;
+	int succi;
+	int predi;
+	int listener;
+} sockets;
+
 typedef struct node{
 	node_data id;
 	node_data predi;
 	node_data succi;
 	struct sockaddr_in udp_server;
 	int ring;
+	sockets fd;
 } node;
 
-
 struct sockaddr_in getIP(char * ip, int port);
-
 int join(node * self, int x);
-
 int leave(node * self);
-
 void exit_app(node * self);
-
 int switch_cmd(char * command, node * self);
 
 #endif
