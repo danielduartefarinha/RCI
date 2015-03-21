@@ -1,4 +1,3 @@
-
 #include "aux.h"
 
 struct sockaddr_in getIP(char * ip, int port){
