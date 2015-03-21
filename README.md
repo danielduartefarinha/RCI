@@ -10,7 +10,7 @@ assim que sair da faculdade e ir viver com ela para uma mansão.
 Ele esquece-se é que ela ainda tem um curso para fazer. Não vai andar
 com um gaiato na barriga e não cvai poder ir viver com o namorado pq
 o pai dela não vai deixar, naturalmente. Mas isto é o jobling que temos.
-É assim. Sonha. E namora há 2.05823823 meses e já quer o mundo todo.
+É assim. Sonha. E namora há 1.66213223 meses e já quer o mundo todo.
 É o jobling.
 Mas a Rita é uma pessoa que tem noção que acabar primeiro o curso de 
 minas e armadilhas. Para poder ganhar mais que o jobling e ele aziar

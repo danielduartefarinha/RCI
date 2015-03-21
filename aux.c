@@ -1,25 +1,5 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <netdb.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <string.h>
-#include <unistd.h>
 
-typedef struct node_data{
-	int  id;	
-	struct sockaddr_in addr;
-} node_data;
-
-typedef struct node{
-	node_data id;
-	node_data predi;
-	node_data succi;
-	struct sockaddr_in udp_server;
-	int ring;
-} node;
+#include "aux.h"
 
 struct sockaddr_in getIP(char * ip, int port){
 	struct hostent *h;

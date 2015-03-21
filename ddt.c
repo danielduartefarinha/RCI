@@ -1,3 +1,5 @@
+#include "aux.h"
+
 int main(int argc, char ** argv){
 	int n, i, err, errno, ringport;
 	char buffer[128], instruction[128];
