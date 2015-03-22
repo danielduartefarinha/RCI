@@ -13,6 +13,7 @@
 
 #define _SIZE_MAX_ 128
 
+static int errno;
 typedef struct node_data{
 	int  id;	
 	struct sockaddr_in addr;
@@ -42,3 +43,4 @@ void exit_app(node * self);
 int switch_cmd(char * command, node * self);
 
 #endif
+

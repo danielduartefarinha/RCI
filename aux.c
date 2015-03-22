@@ -20,7 +20,7 @@ struct sockaddr_in getIP(char * ip, int port){
 
 node Init_Node(char ** argv, int argc){
 	node new;
-	int i, errno, n;
+	int i, n;
 	char buffer[_SIZE_MAX_];
 	char bootip[_SIZE_MAX_] = "tejo.tecnico.ulisboa.pt";
 	int bootport = 58000;
@@ -47,7 +47,7 @@ node Init_Node(char ** argv, int argc){
 
 	// Inicialização
 	
-	if(gethostname(buffer, _SIZE_MAX_)==-1) printf("error: %s\n", strerror(errno));
+	if(gethostname(buffer, _SIZE_MAX_) == -1) printf("error: %s\n", strerror(errno));
 	new.id.addr = getIP(buffer, ringport);
 	new.id.id = -1;
 	new.predi.id = -1;
@@ -60,6 +60,28 @@ node Init_Node(char ** argv, int argc){
 	new.fd.succi = -1;
 	
 	return new;
+}
+
+int join_succi(node * self){
+	int err, addrlen;
+	char buffer[_SIZE_MAX_];
+	
+	
+	self->fd.succi = socket(AF_INET, SOCK_STREAM, 0);
+	if(self->fd.succi == -1) exit(1);
+
+	addrlen = sizeof(self->succi.addr);
+	err = connect(self->fd.succi, (struct sockaddr *) &self->succi.addr, (socklen_t) addrlen);
+	
+	if (err == -1) printf("error: %s\n", strerror(errno));
+	
+	memset((void *) buffer, (int) '\0', _SIZE_MAX_);
+	sprintf(buffer, "NEW %d %s %hu\n", self->id.id, inet_ntoa(self->id.addr.sin_addr), ntohs(self->id.addr.sin_port));
+	write(self->fd.succi, buffer, (size_t) _SIZE_MAX_);
+	
+	printf("Enviado [%s] para o nó %d %s %hu\n", buffer, self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
+	exit(0);
+	
 }
 
 int join(node * self, int x){
@@ -139,10 +161,10 @@ void exit_app(node * self){
 }
 
 int switch_cmd(char * command, node * self){
-	char buffer[_SIZE_MAX_], succiIP[_SIZE_MAX_], succiTCP[_SIZE_MAX_];
-	int n, err, x, succi;
+	char buffer[_SIZE_MAX_], succiIP[_SIZE_MAX_];
+	int n, err, x, succi, succiTCP;
 	
-	n = sscanf(command, "%s %d %d %d %s %s", buffer, &x, &self->id.id, &succi, succiIP, succiTCP);
+	n = sscanf(command, "%s %d %d %d %s %d", buffer, &x, &self->id.id, &succi, succiIP, &succiTCP);
 	switch(n){
 		case(1):
 			if(strcmp(buffer, "leave") == 0){
@@ -170,15 +192,32 @@ int switch_cmd(char * command, node * self){
 			break;
 		case(3):
 			if(strcmp(buffer, "join") == 0){
-				err = join(self, x);
+				if(self->ring == -1){
+					err = join(self, x);
+				}else{
+					printf("O nó ja está inserido no anel %d, não pode ser adicionado a outro\n", self->ring);
+					err = 3;
+				}
 			}else{
 				printf("%s não é um comando válido, ou faltam argumentos\n", buffer);
 			}
 			break;
 		case(6):
 			if(strcmp(buffer, "join") == 0){
-				// Função de entrada no anel x, como identificador i, sabendo succi
-				printf("Função ainda não implementada\n");
+				if(self->ring == -1){
+					if(self->id.id == succi){
+						printf("O identificador é igual ao nó sucessor. Operação Cancelada\n");
+						err = 3;
+						break;
+					}
+					self->succi.id = succi;
+					self->succi.addr = getIP(succiIP, succiTCP);
+					err = join_succi(self);
+					printf("Função ainda não implementada\n");
+				}else{
+					printf("O nó ja está inserido no anel %d, não pode ser adicionado a outro\n", self->ring);
+					err = 3;
+				}
 			}else{
 				printf("%s não é um comando válido, ou faltam argumentos\n", buffer);
 			}
@@ -187,6 +226,6 @@ int switch_cmd(char * command, node * self){
 			printf("%s não é um comando válido, ou faltam argumentos\n", buffer);
 			break;
 	}
-	return 0;
+	return err;
 }
 

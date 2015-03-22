@@ -21,6 +21,8 @@ int main(int argc, char ** argv){
 	if(bind(self.fd.listener, (struct sockaddr*)&self.id.addr, addrlen) == -1) exit(1);
 	if(listen(self.fd.listener, 5) == -1) exit(1);
 	
+	// Interface Utilizador
+	
 	while(1){
 		FD_ZERO(&rfds);
 		FD_SET(self.fd.keyboard, &rfds);
@@ -41,7 +43,7 @@ int main(int argc, char ** argv){
 		if (n <= 0) exit(1);
 		
 		if (FD_ISSET(self.fd.keyboard, &rfds)){
-			fgets(instruction, 128, stdin);
+			fgets(instruction, _SIZE_MAX_, stdin);
 			err = switch_cmd(instruction, &self);
 		}
 		
