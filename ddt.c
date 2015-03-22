@@ -2,7 +2,7 @@
 
 int main(int argc, char ** argv){
 	int n, err, errno, addrlen, maxfd;
-	char buffer[128], instruction[128];
+	char buffer[_SIZE_MAX_], instruction[_SIZE_MAX_];
 	node self;
 	fd_set rfds;
 	enum {idle, busy} state;

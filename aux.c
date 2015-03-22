@@ -21,8 +21,8 @@ struct sockaddr_in getIP(char * ip, int port){
 node Init_Node(char ** argv, int argc){
 	node new;
 	int i, errno, n;
-	char buffer[128];
-	char bootip[128] = "tejo.tecnico.ulisboa.pt";
+	char buffer[_SIZE_MAX_];
+	char bootip[_SIZE_MAX_] = "tejo.tecnico.ulisboa.pt";
 	int bootport = 58000;
 	int ringport = -1;
 	
@@ -47,7 +47,7 @@ node Init_Node(char ** argv, int argc){
 
 	// Inicialização
 	
-	if(gethostname(buffer,128)==-1) printf("error: %s\n", strerror(errno));
+	if(gethostname(buffer, _SIZE_MAX_)==-1) printf("error: %s\n", strerror(errno));
 	new.id.addr = getIP(buffer, ringport);
 	new.id.id = -1;
 	new.predi.id = -1;
@@ -64,7 +64,7 @@ node Init_Node(char ** argv, int argc){
 
 int join(node * self, int x){
 	int fd, addrlen, n;
-	char buffer[128];
+	char buffer[_SIZE_MAX_];
 	
 	fd=socket(AF_INET, SOCK_DGRAM,0);
 	if(fd==-1)exit(1);
@@ -73,10 +73,10 @@ int join(node * self, int x){
   	n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
 	if(n==-1)exit(1);
 
-	memset(buffer, '\0', 128);
+	memset(buffer, '\0', _SIZE_MAX_);
 
 	addrlen=sizeof(self->udp_server);
-	n = recvfrom(fd,buffer,128,0,(struct sockaddr*)&self->udp_server,&addrlen);
+	n = recvfrom(fd,buffer,_SIZE_MAX_,0,(struct sockaddr*)&self->udp_server,&addrlen);
 	if(n==-1)exit(1);
 	
 	if(strcmp(buffer, "EMPTY")==0){
@@ -84,8 +84,8 @@ int join(node * self, int x){
 		sprintf(buffer, "REG %d %d %s %hu", x, self->id.id, inet_ntoa(self->id.addr.sin_addr),ntohs(self->id.addr.sin_port));
 		n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
 		if(n==-1)exit(1);
-		memset(buffer, '\0', 128);
-		n = recvfrom(fd,buffer,128,0,(struct sockaddr*)&self->udp_server,&addrlen);
+		memset(buffer, '\0', _SIZE_MAX_);
+		n = recvfrom(fd,buffer,_SIZE_MAX_,0,(struct sockaddr*)&self->udp_server,&addrlen);
 		if(n==-1)exit(1);
 		if (strcmp(buffer, "OK") == 0){
 			printf("Anel %d criado\n", x);
@@ -101,7 +101,7 @@ int join(node * self, int x){
 
 int leave(node * self){	
 	int fd, addrlen, n;
-	char buffer[128];
+	char buffer[_SIZE_MAX_];
 	
 	if (self->ring == -1){
 		printf("O nó não está inserido em nenhum anel\n");
@@ -115,10 +115,10 @@ int leave(node * self){
   	n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
 	if(n==-1)exit(1);
 
-	memset(buffer, '\0', 128);
+	memset(buffer, '\0', _SIZE_MAX_);
 
 	addrlen=sizeof(self->udp_server);
-	n = recvfrom(fd,buffer,128,0,(struct sockaddr*)&self->udp_server,&addrlen);
+	n = recvfrom(fd,buffer,_SIZE_MAX_,0,(struct sockaddr*)&self->udp_server,&addrlen);
 	if(n==-1)exit(1);
 	
 	if(strcmp(buffer, "OK")==0){
@@ -139,7 +139,7 @@ void exit_app(node * self){
 }
 
 int switch_cmd(char * command, node * self){
-	char buffer[128], succiIP[128], succiTCP[128];
+	char buffer[_SIZE_MAX_], succiIP[_SIZE_MAX_], succiTCP[_SIZE_MAX_];
 	int n, err, x, succi;
 	
 	n = sscanf(command, "%s %d %d %d %s %s", buffer, &x, &self->id.id, &succi, succiIP, succiTCP);

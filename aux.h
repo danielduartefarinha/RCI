@@ -11,6 +11,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#define _SIZE_MAX_ 128
+
 typedef struct node_data{
 	int  id;	
 	struct sockaddr_in addr;
