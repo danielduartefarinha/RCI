@@ -1,10 +1,8 @@
 #include "aux.h"
 
 int main(int argc, char ** argv){
-	int n, i, err, errno, ringport, addrlen, maxfd;
+	int n, err, errno, addrlen, maxfd;
 	char buffer[128], instruction[128];
-	char bootip[128] = "tejo.tecnico.ulisboa.pt";
-	int bootport = 58000;
 	node self;
 	fd_set rfds;
 	enum {idle, busy} state;
@@ -16,40 +14,9 @@ int main(int argc, char ** argv){
 		exit(-1);
 	}
 	
-	//Trata argumentos
+	self = Init_Node(argv, argc);
 	
-	for(i = 1; i < argc-1; i++){
-		if (strcmp(argv[i],"-t")==0){
-			if(argv[i+1][0] == '-') continue;
-			n = sscanf(argv[i+1], "%d", &ringport);
-			if (n != 1) exit(2);
-		}
-		if (strcmp(argv[i], "-i") == 0){
-			if(argv[i+1][0] == '-') continue;
-			strcpy(bootip, argv[i+1]);
-		}
-		if (strcmp(argv[i], "-p") == 0){
-			if(argv[i+1][0] == '-') continue;
-			n = sscanf(argv[i+1], "%d", &bootport);
-			if (n != 1) exit(2);
-		}
-	}
-
-	// Inicialização
-	
-	if(gethostname(buffer,128)==-1) printf("error: %s\n", strerror(errno));
-	self.id.addr = getIP(buffer, ringport);
-	self.id.id = -1;
-	self.predi.id = -1;
-	self.succi.id = -1;
-	self.udp_server = getIP(bootip, bootport);
-	self.ring = -1;	// Inicialização do numero do anel a -1
 	addrlen = sizeof(self.id.addr);
-	
-	self.fd.keyboard = 0;
-	self.fd.predi = -1;
-	self.fd.succi = -1;
-	
 	if((self.fd.listener = socket(AF_INET, SOCK_STREAM, 0)) == -1) exit(1);
 	if(bind(self.fd.listener, (struct sockaddr*)&self.id.addr, addrlen) == -1) exit(1);
 	if(listen(self.fd.listener, 5) == -1) exit(1);

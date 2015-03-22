@@ -18,6 +18,50 @@ struct sockaddr_in getIP(char * ip, int port){
 	return addr;
 }
 
+node Init_Node(char ** argv, int argc){
+	node new;
+	int i, errno, n;
+	char buffer[128];
+	char bootip[128] = "tejo.tecnico.ulisboa.pt";
+	int bootport = 58000;
+	int ringport = -1;
+	
+	//Trata argumentos
+	
+	for(i = 1; i < argc-1; i++){
+		if (strcmp(argv[i],"-t")==0){
+			if(argv[i+1][0] == '-') continue;
+			n = sscanf(argv[i+1], "%d", &ringport);
+			if (n != 1) exit(2);
+		}
+		if (strcmp(argv[i], "-i") == 0){
+			if(argv[i+1][0] == '-') continue;
+			strcpy(bootip, argv[i+1]);
+		}
+		if (strcmp(argv[i], "-p") == 0){
+			if(argv[i+1][0] == '-') continue;
+			n = sscanf(argv[i+1], "%d", &bootport);
+			if (n != 1) exit(2);
+		}
+	}
+
+	// Inicialização
+	
+	if(gethostname(buffer,128)==-1) printf("error: %s\n", strerror(errno));
+	new.id.addr = getIP(buffer, ringport);
+	new.id.id = -1;
+	new.predi.id = -1;
+	new.succi.id = -1;
+	new.udp_server = getIP(bootip, bootport);
+	new.ring = -1;	// Inicialização do numero do anel a -1
+	
+	new.fd.keyboard = 0;
+	new.fd.predi = -1;
+	new.fd.succi = -1;
+	
+	return new;
+}
+
 int join(node * self, int x){
 	int fd, addrlen, n;
 	char buffer[128];
