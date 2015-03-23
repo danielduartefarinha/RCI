@@ -47,11 +47,8 @@ int main(int argc, char ** argv){
 		if (n <= 0) exit(1);
 		
 		if (FD_ISSET(self.fd.listener, &rfds)){
-			printf("Olá sou o %s:%hu\n", inet_ntoa(self.id.addr.sin_addr), ntohs(self.id.addr.sin_port));
-			fd_aux = accept(self.fd.listener, (struct sockaddr *)&self.id.addr, &addrlen);
-			printf("Olá sou o %s:%hu\n", inet_ntoa(self.id.addr.sin_addr), ntohs(self.id.addr.sin_port));
+			fd_aux = accept(self.fd.listener, (struct sockaddr *)&self.id.addr, &addrlen); // Criar estrutura auxiliar para colocar dentro do accept
 			n = read(fd_aux, buffer, _SIZE_MAX_);
-			printf("Esta máquina:%s %hu mandou esta mensagem: %s", inet_ntoa(self.id.addr.sin_addr), ntohs(self.id.addr.sin_port), buffer);
 			close(fd_aux);
 		}		
 		
