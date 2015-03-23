@@ -121,6 +121,21 @@ int join(node * self, int x){
 	return 1;
 }
 
+int show(node * self){
+	printf("Olá sou o %s:%hu\n", inet_ntoa(self->id.addr.sin_addr), ntohs(self->id.addr.sin_port));
+	if(self->predi.id != -1){
+		printf("O meu predi é %s:%hu\n", inet_ntoa(self->predi.addr.sin_addr), ntohs(self->predi.addr.sin_port));
+	}else{
+		printf("Não tenho predi :(\n");
+	}
+	if(self->succi.id != -1){
+		printf("O meu succi é %s:%hu\n", inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
+	}else{
+		printf("Não tenho succi :(\n");
+	}
+	return 0;
+}
+
 int leave(node * self){	
 	int fd, addrlen, n;
 	char buffer[_SIZE_MAX_];
@@ -171,8 +186,7 @@ int switch_cmd(char * command, node * self){
 				err = leave(self);
 			}else{
 				if(strcmp(buffer, "show") == 0){
-					// Função de listagem de informações
-					printf("Função ainda não implementada\n");
+					err = show(self);
 				}else{
 					if(strcmp(buffer, "exit") == 0){
 						exit_app(self);

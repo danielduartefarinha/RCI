@@ -1,12 +1,11 @@
 #include "aux.h"
 
 int main(int argc, char ** argv){
-	int n, err, addrlen, addr_aux_len, maxfd, fd_aux;
+	int n, err, addrlen, maxfd, fd_aux;
 	char buffer[_SIZE_MAX_], instruction[_SIZE_MAX_];
 	node self;
 	fd_set rfds;
 	void (*old_handler)(int);
-	struct sockaddr_in addr_aux;
 	
 	// enum {idle, busy} state; Para já não está a ser usado
 		
@@ -47,16 +46,19 @@ int main(int argc, char ** argv){
 		n = select(maxfd+1, &rfds, (fd_set *) NULL, (fd_set *) NULL, (struct timeval *) NULL);
 		if (n <= 0) exit(1);
 		
+		if (FD_ISSET(self.fd.listener, &rfds)){
+			printf("Olá sou o %s:%hu\n", inet_ntoa(self.id.addr.sin_addr), ntohs(self.id.addr.sin_port));
+			fd_aux = accept(self.fd.listener, (struct sockaddr *)&self.id.addr, &addrlen);
+			printf("Olá sou o %s:%hu\n", inet_ntoa(self.id.addr.sin_addr), ntohs(self.id.addr.sin_port));
+			n = read(fd_aux, buffer, _SIZE_MAX_);
+			printf("Esta máquina:%s %hu mandou esta mensagem: %s", inet_ntoa(self.id.addr.sin_addr), ntohs(self.id.addr.sin_port), buffer);
+			close(fd_aux);
+		}		
+		
 		if (FD_ISSET(self.fd.keyboard, &rfds)){
 			fgets(instruction, _SIZE_MAX_, stdin);
 			err = switch_cmd(instruction, &self);
-		}
-		
-		if (FD_ISSET(self.fd.listener, &rfds)){
-			fd_aux = accept(self.fd.listener, (struct sockaddr *)&addr_aux, &addr_aux_len);
-			n = read(fd_aux, buffer, _SIZE_MAX_);
-			printf("Este bicho: não sei o numero %s %hu mandou esta mensagem: %s", inet_ntoa(addr_aux.sin_addr), ntohs(addr_aux.sin_port), buffer);
-			
+			memset((void *) instruction, (int) '\0', _SIZE_MAX_);
 		}
 		
 		if (FD_ISSET(self.fd.predi, &rfds)){
