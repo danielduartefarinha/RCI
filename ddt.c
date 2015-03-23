@@ -7,6 +7,9 @@ int main(int argc, char ** argv){
 	fd_set rfds;
 	void (*old_handler)(int);
 	
+	struct sockaddr_in addr;
+	int aux_addrlen;
+	
 	// enum {idle, busy} state; Para já não está a ser usado
 		
 	// ERROS
@@ -47,8 +50,13 @@ int main(int argc, char ** argv){
 		if (n <= 0) exit(1);
 		
 		if (FD_ISSET(self.fd.listener, &rfds)){
-			fd_aux = accept(self.fd.listener, (struct sockaddr *)&self.id.addr, &addrlen); // Criar estrutura auxiliar para colocar dentro do accept
+			fd_aux = accept(self.fd.listener, (struct sockaddr *)&addr, &aux_addrlen);
+			if(fd_aux == -1){
+				printf("Erro no accept\n");
+				exit(0);
+			}
 			n = read(fd_aux, buffer, _SIZE_MAX_);
+			printf("<%s>\n", buffer);
 			close(fd_aux);
 		}		
 		
