@@ -2,12 +2,13 @@
 
 struct sockaddr_in getIP(char * ip, int port){
 	struct hostent *h;
-	struct in_addr *a;
+	struct in_addr *a, *b;
 	struct sockaddr_in addr;
 	
 	if((h = gethostbyname(ip))==NULL){
 		exit(1);
 	}	
+	
 	a=(struct in_addr*)h->h_addr_list[0];
 	
 	memset((void*)&addr,(int)'\0', sizeof(addr));

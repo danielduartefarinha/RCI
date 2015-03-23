@@ -22,8 +22,11 @@ int main(int argc, char ** argv){
 	if((old_handler = signal(SIGPIPE, SIG_IGN)) == SIG_ERR) exit(1);
 	
 	self = Init_Node(argv, argc);
+	addr = self.id.addr;
 	
 	addrlen = sizeof(self.id.addr);
+	aux_addrlen = addrlen;
+	
 	if((self.fd.listener = socket(AF_INET, SOCK_STREAM, 0)) == -1) exit(1);
 	if(bind(self.fd.listener, (struct sockaddr*)&self.id.addr, addrlen) == -1) exit(1);
 	if(listen(self.fd.listener, 5) == -1) exit(1);
@@ -48,6 +51,12 @@ int main(int argc, char ** argv){
 		
 		n = select(maxfd+1, &rfds, (fd_set *) NULL, (fd_set *) NULL, (struct timeval *) NULL);
 		if (n <= 0) exit(1);
+			
+		if (FD_ISSET(self.fd.keyboard, &rfds)){
+			fgets(instruction, _SIZE_MAX_, stdin);
+			err = switch_cmd(instruction, &self);
+			memset((void *) instruction, (int) '\0', _SIZE_MAX_);
+		}
 		
 		if (FD_ISSET(self.fd.listener, &rfds)){
 			fd_aux = accept(self.fd.listener, (struct sockaddr *)&addr, &aux_addrlen);
@@ -56,15 +65,8 @@ int main(int argc, char ** argv){
 				exit(0);
 			}
 			n = read(fd_aux, buffer, _SIZE_MAX_);
-			printf("<%s>\n", buffer);
 			close(fd_aux);
-		}		
-		
-		if (FD_ISSET(self.fd.keyboard, &rfds)){
-			fgets(instruction, _SIZE_MAX_, stdin);
-			err = switch_cmd(instruction, &self);
-			memset((void *) instruction, (int) '\0', _SIZE_MAX_);
-		}
+		}			
 		
 		if (FD_ISSET(self.fd.predi, &rfds)){
 			
