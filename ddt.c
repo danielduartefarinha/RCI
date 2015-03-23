@@ -1,11 +1,14 @@
 #include "aux.h"
 
 int main(int argc, char ** argv){
-	int n, err, errno, addrlen, maxfd;
+	int n, err, addrlen, addr_aux_len, maxfd, fd_aux;
 	char buffer[_SIZE_MAX_], instruction[_SIZE_MAX_];
 	node self;
 	fd_set rfds;
-	enum {idle, busy} state;
+	void (*old_handler)(int);
+	struct sockaddr_in addr_aux;
+	
+	// enum {idle, busy} state; Para já não está a ser usado
 		
 	// ERROS
 	
@@ -13,6 +16,8 @@ int main(int argc, char ** argv){
 		printf("Incorrect number of arguments\n");
 		exit(-1);
 	}
+	
+	if((old_handler = signal(SIGPIPE, SIG_IGN)) == SIG_ERR) exit(1);
 	
 	self = Init_Node(argv, argc);
 	
@@ -48,6 +53,9 @@ int main(int argc, char ** argv){
 		}
 		
 		if (FD_ISSET(self.fd.listener, &rfds)){
+			fd_aux = accept(self.fd.listener, (struct sockaddr *)&addr_aux, &addr_aux_len);
+			n = read(fd_aux, buffer, _SIZE_MAX_);
+			printf("Este bicho: não sei o numero %s %hu mandou esta mensagem: %s", inet_ntoa(addr_aux.sin_addr), ntohs(addr_aux.sin_port), buffer);
 			
 		}
 		

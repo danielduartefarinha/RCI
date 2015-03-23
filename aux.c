@@ -79,8 +79,8 @@ int join_succi(node * self){
 	sprintf(buffer, "NEW %d %s %hu\n", self->id.id, inet_ntoa(self->id.addr.sin_addr), ntohs(self->id.addr.sin_port));
 	write(self->fd.succi, buffer, (size_t) _SIZE_MAX_);
 	
-	printf("Enviado [%s] para o nó %d %s %hu\n", buffer, self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
-	exit(0);
+	printf("Enviado para o nó %d %s %hu a mensagem %s", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port), buffer);
+	return(0);
 	
 }
 
@@ -213,7 +213,6 @@ int switch_cmd(char * command, node * self){
 					self->succi.id = succi;
 					self->succi.addr = getIP(succiIP, succiTCP);
 					err = join_succi(self);
-					printf("Função ainda não implementada\n");
 				}else{
 					printf("O nó ja está inserido no anel %d, não pode ser adicionado a outro\n", self->ring);
 					err = 3;

@@ -10,10 +10,12 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include <unistd.h>
+#include <signal.h>
 
 #define _SIZE_MAX_ 128
 
 static int errno;
+
 typedef struct node_data{
 	int  id;	
 	struct sockaddr_in addr;
