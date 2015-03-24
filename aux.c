@@ -122,7 +122,13 @@ int join(node * self, int x){
 }
 
 int show(node * self){
+	printf("*****************************************************\n");
 	printf("Olá sou o %s:%hu\n", inet_ntoa(self->id.addr.sin_addr), ntohs(self->id.addr.sin_port));
+	if(self->ring != -1){
+		printf("Estou inserido no anel: %d\n", self->ring);
+	}else{
+		printf("Não estou inserido em nenhum anel :(\n");
+	}
 	if(self->predi.id != -1){
 		printf("O meu predi é %s:%hu\n", inet_ntoa(self->predi.addr.sin_addr), ntohs(self->predi.addr.sin_port));
 	}else{
@@ -173,6 +179,47 @@ void exit_app(node * self){
 	// Fazer frees à memória alocada
 	printf("A sair da aplicação.\n");
 	exit(0);
+}
+
+int switch_listen(char * command, int fd, node * self){
+	char buffer[_SIZE_MAX_], id_ip[_SIZE_MAX_];	
+	int n, id, id_tcp, k, j, err;
+		
+	n = sscanf(command, "%s", buffer);
+	if(n != 1) return 1;  //codigo de erro
+	
+	if(strcmp(buffer, "NEW") == 0){
+		n = sscanf(command, "%*s %d %s %d", &id, id_ip, &id_tcp);
+		if (n != 3) return 1; //codigo de erro
+			if(self->predi.id != -1){
+				memset((void*)buffer, (int)'\0', _SIZE_MAX_);
+				sprintf(buffer, "CON %d %s %d\n", id, id_ip, id_tcp);
+				write(self->fd.predi, buffer, _SIZE_MAX_);
+				close(self->fd.predi);
+			}
+			self->predi.id = id;
+			self->predi.addr = getIP(id_ip, id_tcp);
+			self->fd.predi = fd;
+		}
+	if(strcmp(buffer, "CON") == 0){
+		n = sscanf(command, "%*s %d %s %d", &id, id_ip, &id_tcp);
+		if (n != 3) return 1; //codigo de erro
+		self->succi.id = id;
+		self->succi.addr = getIP(id_ip, id_tcp);
+		close(self->fd.succi);
+		err = join_succi(self);
+	}
+	if(strcmp(buffer, "QRY") == 0){
+		n = sscanf(command, "%*s %d %d", &id, &k);
+		if (n != 2) return 1; //codigo de erro
+		printf("falta implementar função QRY\n");
+	}
+	if(strcmp(buffer, "RSP") == 0){
+		n = sscanf(command, "%*s %d %d %d %s %d", &j, &k, &id, id_ip, &id_tcp);
+		if (n != 5) return 1; //codigo de erro
+		printf("falta implementar função RSP\n");
+	}	
+	return err;
 }
 
 int switch_cmd(char * command, node * self){
@@ -226,6 +273,7 @@ int switch_cmd(char * command, node * self){
 					}
 					self->succi.id = succi;
 					self->succi.addr = getIP(succiIP, succiTCP);
+					self->ring = x;
 					err = join_succi(self);
 				}else{
 					printf("O nó ja está inserido no anel %d, não pode ser adicionado a outro\n", self->ring);

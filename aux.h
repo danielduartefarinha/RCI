@@ -43,6 +43,7 @@ int join(node * self, int x);
 int show(node * self);
 int leave(node * self);
 void exit_app(node * self);
+int switch_listen(char * command, int fd, node * self);
 int switch_cmd(char * command, node * self);
 
 #endif
