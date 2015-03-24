@@ -65,17 +65,20 @@ int main(int argc, char ** argv){
 				exit(0);
 			}
 			n = read(fd_aux, buffer, _SIZE_MAX_);
+			printf("%s", buffer);
 			err = switch_listen(buffer, fd_aux, &self);
 			memset((void *) buffer, (int) '\0', _SIZE_MAX_);
-			close(fd_aux);
 		}			
 		
 		if (FD_ISSET(self.fd.predi, &rfds)){
-			
+
 		}
 		
 		if (FD_ISSET(self.fd.succi, &rfds)){
-			
+			n = read(self.fd.succi, buffer, _SIZE_MAX_);
+			printf("%s", buffer);
+			err = switch_listen(buffer, -1, &self);
+			memset((void *) buffer, (int) '\0', _SIZE_MAX_); 			
 		}
 		
 	}

@@ -72,6 +72,7 @@ int join_succi(node * self){
 
 	addrlen = sizeof(self->succi.addr);
 	err = connect(self->fd.succi, (struct sockaddr *) &self->succi.addr, (socklen_t) addrlen);
+	printf("Aberto o socket %d (succi)\n", self->fd.succi);
 	
 	if (err == -1) printf("error: %s\n", strerror(errno));
 	
@@ -191,21 +192,32 @@ int switch_listen(char * command, int fd, node * self){
 	if(strcmp(buffer, "NEW") == 0){
 		n = sscanf(command, "%*s %d %s %d", &id, id_ip, &id_tcp);
 		if (n != 3) return 1; //codigo de erro
-			if(self->predi.id != -1){
-				memset((void*)buffer, (int)'\0', _SIZE_MAX_);
-				sprintf(buffer, "CON %d %s %d\n", id, id_ip, id_tcp);
-				write(self->fd.predi, buffer, _SIZE_MAX_);
-				close(self->fd.predi);
-			}
-			self->predi.id = id;
-			self->predi.addr = getIP(id_ip, id_tcp);
-			self->fd.predi = fd;
+		
+		if(self->predi.id != -1){
+			memset((void*)buffer, (int)'\0', _SIZE_MAX_);
+			sprintf(buffer, "CON %d %s %d\n", id, id_ip, id_tcp);
+			write(self->fd.predi, buffer, _SIZE_MAX_);
+			printf("Enviado para o nó %d %s %hu a mensagem %s", self->predi.id, inet_ntoa(self->predi.addr.sin_addr), ntohs(self->predi.addr.sin_port), buffer);
+			printf("Fechar o socket %d (predi)\n", self->fd.predi);
+			close(self->fd.predi);
 		}
+		self->predi.id = id;
+		self->predi.addr = getIP(id_ip, id_tcp);
+		self->fd.predi = fd;
+		printf("Aberto o socket %d (predi)\n", self->fd.predi);
+		
+		if(self->succi.id == -1){
+			self->succi.id = id;
+			self->succi.addr = getIP(id_ip, id_tcp);
+			err = join_succi(self);
+		}
+	}
 	if(strcmp(buffer, "CON") == 0){
 		n = sscanf(command, "%*s %d %s %d", &id, id_ip, &id_tcp);
 		if (n != 3) return 1; //codigo de erro
 		self->succi.id = id;
 		self->succi.addr = getIP(id_ip, id_tcp);
+		printf("Fechar o socket %d (succi)\n", self->fd.succi);
 		close(self->fd.succi);
 		err = join_succi(self);
 	}
