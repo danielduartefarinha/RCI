@@ -71,7 +71,7 @@ int main(int argc, char ** argv){
 		}			
 		
 		if (FD_ISSET(self.fd.predi, &rfds)){
-			n = read(self.fd.succi, buffer, _SIZE_MAX_);
+			n = read(self.fd.predi, buffer, _SIZE_MAX_);
 			printf("Predi sent: %s", buffer);
 			err = switch_listen(buffer, -1, &self);
 			memset((void *) buffer, (int) '\0', _SIZE_MAX_); 

@@ -71,7 +71,7 @@ int search(node * self, int k){
 	int n;
 	char buffer[_SIZE_MAX_];
 	
-	sprintf(buffer, "QRY %d %d", self->id.id, k);
+	sprintf(buffer, "QRY %d %d\n", self->id.id, k);
 	n = write(self->fd.succi, buffer, _SIZE_MAX_);
 	if (n > 0) return 0;
 	else return 1;
