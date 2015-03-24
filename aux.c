@@ -71,10 +71,15 @@ int search(node * self, int k){
 	int n;
 	char buffer[_SIZE_MAX_];
 	
-	sprintf(buffer, "QRY %d %d\n", self->id.id, k);
-	n = write(self->fd.succi, buffer, _SIZE_MAX_);
-	if (n > 0) return 0;
-	else return 1;
+	if (dist(k, self->id.id) < dist(self->predi.id, self->id.id)){
+		printf("Sou eu o responsável! Vou responder!\n");
+		printf("O nó %d (eu) é responsavel por %d\n", self->id.id, k);
+	}else{
+		sprintf(buffer, "QRY %d %d\n", self->id.id, k);
+		n = write(self->fd.succi, buffer, _SIZE_MAX_);
+		if (n > 0) return 0;
+		else return 1;
+	}
 }
 
 int join_succi(node * self){
@@ -138,10 +143,10 @@ int join(node * self, int x){
 }
 
 int show(node * self){
-	printf("*****************************************************\n");
+	printf("************************************************************\n");
 	printf("Olá sou o %s:%hu\n", inet_ntoa(self->id.addr.sin_addr), ntohs(self->id.addr.sin_port));
 	if(self->ring != -1){
-		printf("Estou inserido no anel: %d\n", self->ring);
+		printf("Estou inserido no anel: %d e sou o nó: %d\n", self->ring, self->id.id);
 	}else{
 		printf("Não estou inserido em nenhum anel :(\n");
 	}
@@ -241,6 +246,7 @@ int switch_listen(char * command, int fd, node * self){
 		n = sscanf(command, "%*s %d %d", &id, &k);
 		if (n != 2) return 1; //codigo de erro
 		if (dist(k, self->id.id) < dist(self->predi.id, self->id.id)){
+			printf("Sou eu o responsável! Vou responder!\n");
 			sprintf(buffer, "RSP %d %d %d %s %d\n", id, k, self->id.id, inet_ntoa(self->id.addr.sin_addr), ntohs(self->id.addr.sin_port));
 			n = write(self->fd.predi, buffer, _SIZE_MAX_);
 		}else{
@@ -250,7 +256,13 @@ int switch_listen(char * command, int fd, node * self){
 	if(strcmp(buffer, "RSP") == 0){
 		n = sscanf(command, "%*s %d %d %d %s %d", &j, &k, &id, id_ip, &id_tcp);
 		if (n != 5) return 1; //codigo de erro
-		if(j == self->id.id) printf("%d é responsavel por %d\n", id, k);
+		if(j == self->id.id){
+			printf("O nó %d é responsavel por %d\n", id, k);
+			err = 0;
+		}else{
+			n = write(self->fd.predi, command, _SIZE_MAX_);
+			err = 0;
+		}
 	}	
 	return err;
 }

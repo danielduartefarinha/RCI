@@ -48,7 +48,8 @@ int main(int argc, char ** argv){
 		}
 		
 		// Sempre que se fizer close tem de se colocar self.fd.* = -1
-		
+				
+		printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 		n = select(maxfd+1, &rfds, (fd_set *) NULL, (fd_set *) NULL, (struct timeval *) NULL);
 		if (n <= 0) exit(1);
 			
