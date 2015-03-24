@@ -65,18 +65,21 @@ int main(int argc, char ** argv){
 				exit(0);
 			}
 			n = read(fd_aux, buffer, _SIZE_MAX_);
-			printf("%s", buffer);
+			printf("Someone said: %s", buffer);
 			err = switch_listen(buffer, fd_aux, &self);
 			memset((void *) buffer, (int) '\0', _SIZE_MAX_);
 		}			
 		
 		if (FD_ISSET(self.fd.predi, &rfds)){
-
+			n = read(self.fd.succi, buffer, _SIZE_MAX_);
+			printf("Predi sent: %s", buffer);
+			err = switch_listen(buffer, -1, &self);
+			memset((void *) buffer, (int) '\0', _SIZE_MAX_); 
 		}
 		
 		if (FD_ISSET(self.fd.succi, &rfds)){
 			n = read(self.fd.succi, buffer, _SIZE_MAX_);
-			printf("%s", buffer);
+			printf("Succi sent: %s", buffer);
 			err = switch_listen(buffer, -1, &self);
 			memset((void *) buffer, (int) '\0', _SIZE_MAX_); 			
 		}
