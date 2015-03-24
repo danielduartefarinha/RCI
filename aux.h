@@ -37,6 +37,7 @@ typedef struct node{
 	sockets fd;
 } node;
 
+void print_interface(int n);
 struct sockaddr_in getIP(char * ip, int port);
 node Init_Node(char ** argv, int argc);
 int search(node * self, int k);

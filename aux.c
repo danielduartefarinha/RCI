@@ -1,5 +1,31 @@
 #include "aux.h"
 
+void print_interface(int n){
+	switch (n){
+		case 0:
+			printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+			printf("|                   DDT - Commands                       |\n");
+			printf("|--------------------------------------------------------|\n");
+			printf("|join x i                                                |\n");
+			printf("|join x i succi succi.IP succi.TCP                       |\n");
+			printf("|leave                                                   |\n");
+			printf("|show                                                    |\n");
+			printf("|search k                                                |\n");
+			printf("|exit                                                    |\n");
+			break;
+		case 1:
+			printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+			break;
+		case 2:
+			printf("**********************************************************\n");
+			break;
+		default:
+			break;
+	}
+	
+	
+}
+
 struct sockaddr_in getIP(char * ip, int port){
 	struct hostent *h;
 	struct in_addr *a, *b;
@@ -143,7 +169,7 @@ int join(node * self, int x){
 }
 
 int show(node * self){
-	printf("************************************************************\n");
+	print_interface(2);
 	printf("Olá sou o %s:%hu\n", inet_ntoa(self->id.addr.sin_addr), ntohs(self->id.addr.sin_port));
 	if(self->ring != -1){
 		printf("Estou inserido no anel: %d e sou o nó: %d\n", self->ring, self->id.id);
