@@ -39,6 +39,7 @@ typedef struct node{
 
 struct sockaddr_in getIP(char * ip, int port);
 node Init_Node(char ** argv, int argc);
+int search(node * self, int k);
 int join(node * self, int x);
 int show(node * self);
 int leave(node * self);

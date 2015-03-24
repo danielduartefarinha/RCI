@@ -62,6 +62,21 @@ node Init_Node(char ** argv, int argc){
 	return new;
 }
 
+int dist(int k, int id){
+	if (id >= k) return (id - k);
+	else return (64 + id - k);
+}
+
+int search(node * self, int k){
+	int n;
+	char buffer[_SIZE_MAX_];
+	
+	sprintf(buffer, "QRY %d %d", self->id.id, k);
+	n = write(self->fd.succi, buffer, _SIZE_MAX_);
+	if (n > 0) return 0;
+	else return 1;
+}
+
 int join_succi(node * self){
 	int err, addrlen;
 	char buffer[_SIZE_MAX_];
@@ -193,6 +208,7 @@ int switch_listen(char * command, int fd, node * self){
 		n = sscanf(command, "%*s %d %s %d", &id, id_ip, &id_tcp);
 		if (n != 3) return 1; //codigo de erro
 		
+		
 		if(self->predi.id != -1){
 			memset((void*)buffer, (int)'\0', _SIZE_MAX_);
 			sprintf(buffer, "CON %d %s %d\n", id, id_ip, id_tcp);
@@ -224,12 +240,17 @@ int switch_listen(char * command, int fd, node * self){
 	if(strcmp(buffer, "QRY") == 0){
 		n = sscanf(command, "%*s %d %d", &id, &k);
 		if (n != 2) return 1; //codigo de erro
-		printf("falta implementar função QRY\n");
+		if (dist(k, self->id.id) < dist(self->predi.id, self->id.id)){
+			sprintf(buffer, "RSP %d %d %d %s %d\n", id, k, self->id.id, inet_ntoa(self->id.addr.sin_addr), ntohs(self->id.addr.sin_port));
+			n = write(self->fd.predi, buffer, _SIZE_MAX_);
+		}else{
+			n = write(self->fd.succi, command, _SIZE_MAX_);
+		}
 	}
 	if(strcmp(buffer, "RSP") == 0){
 		n = sscanf(command, "%*s %d %d %d %s %d", &j, &k, &id, id_ip, &id_tcp);
 		if (n != 5) return 1; //codigo de erro
-		printf("falta implementar função RSP\n");
+		if(j == self->id.id) printf("%d é responsavel por %d\n", id, k);
 	}	
 	return err;
 }
@@ -257,8 +278,7 @@ int switch_cmd(char * command, node * self){
 			break;
 		case(2):
 			if(strcmp(buffer, "search") == 0){
-				// Função de procura de um identificador k, neste caso, o inteiro x
-				printf("Função ainda não implementada\n");
+				err = search(self, x);
 			}else{
 				printf("%s não é um comando válido, ou faltam argumentos\n", buffer);
 			}
@@ -278,11 +298,6 @@ int switch_cmd(char * command, node * self){
 		case(6):
 			if(strcmp(buffer, "join") == 0){
 				if(self->ring == -1){
-					if(self->id.id == succi){
-						printf("O identificador é igual ao nó sucessor. Operação Cancelada\n");
-						err = 3;
-						break;
-					}
 					self->succi.id = succi;
 					self->succi.addr = getIP(succiIP, succiTCP);
 					self->ring = x;
