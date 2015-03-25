@@ -335,7 +335,7 @@ int switch_listen(char * command, int fd, node * self){
 			self->succi.addr = getIP(id_ip, id_tcp);
 			err = join_succi(self, 1);
 		}
-	}
+	}	
 	if(strcmp(buffer, "CON") == 0){
 		n = sscanf(command, "%*s %d %s %d", &id, id_ip, &id_tcp);
 		if (n != 3) return 1; //codigo de erro
@@ -344,7 +344,7 @@ int switch_listen(char * command, int fd, node * self){
 		printf("Fechar o socket %d (succi)\n", self->fd.succi);
 		close(self->fd.succi);
 		err = join_succi(self, 1);
-	}
+	}	
 	if(strcmp(buffer, "QRY") == 0){
 		n = sscanf(command, "%*s %d %d", &id, &k);
 		if (n != 2) return 1; //codigo de erro
@@ -355,7 +355,7 @@ int switch_listen(char * command, int fd, node * self){
 		}else{
 			n = write(self->fd.succi, command, _SIZE_MAX_);
 		}
-	}
+	}	
 	if(strcmp(buffer, "RSP") == 0){
 		n = sscanf(command, "%*s %d %d %d %s %d", &j, &k, &id, id_ip, &id_tcp);
 		if (n != 5) return 1; //codigo de erro
@@ -373,7 +373,7 @@ int switch_listen(char * command, int fd, node * self){
 			n = write(self->fd.predi, command, _SIZE_MAX_);
 			err = 0;
 		}
-	}	
+	}		
 	if(strcmp(buffer, "ID") == 0){
 		if(self->succi.id == -1){
 			sprintf(buffer, "SUCC %d %s %d\n", self->id.id, inet_ntoa(self->id.addr.sin_addr),ntohs(self->id.addr.sin_port));
@@ -381,7 +381,7 @@ int switch_listen(char * command, int fd, node * self){
 		}else{
 			n = sscanf(command, "%*s %d", &k);
 			if(n != 1) return -1; //codigo de erro
-			
+		
 			if(search(self, k) == 1){
 				sprintf(buffer, "SUCC %d %s %d\n", self->id.id, inet_ntoa(self->id.addr.sin_addr),ntohs(self->id.addr.sin_port));
 				n = write(fd, buffer, _SIZE_MAX_);
@@ -389,29 +389,29 @@ int switch_listen(char * command, int fd, node * self){
 				err = -10;
 			}
 		}
-	}
+	}	
 	if(strcmp(buffer, "SUCC") == 0){
 		n = sscanf(command, "%*s %d %s %d", &id, id_ip, &id_tcp);
 		if (n != 3) return 1; //codigo de erro
 		if(self->id.id == id){
 			printf("Nó ja existente, escolhe outro\n");
-			
+					
 			self->succi.id = -1;
 			self->ring = -1;
 			close(self->fd.succi);
 		}else{
-		self->succi.id = id;
-		self->succi.addr = getIP(id_ip, id_tcp);
-		printf("Fechar o socket %d (succi)\n", self->fd.succi);
-		close(self->fd.succi);
-		err = join_succi(self, 1);
+			self->succi.id = id;
+			self->succi.addr = getIP(id_ip, id_tcp);
+			printf("Fechar o socket %d (succi)\n", self->fd.succi);
+			close(self->fd.succi);
+			err = join_succi(self, 1);
 		}
-	}
+	}	
 	if(strcmp(buffer, "BOOT") == 0){
 		self->boot = 1;
 		err = 0;
 	}
-	
+
 	return err;
 }
 
