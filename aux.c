@@ -81,6 +81,7 @@ node Init_Node(char ** argv, int argc){
 	new.udp_server = getIP(bootip, bootport);
 	
 	new.ring = -1;	// Inicialização do numero do anel a -1
+	new.boot = 0;
 	
 	new.fd.keyboard = 0;
 	new.fd.predi = -1;
@@ -167,6 +168,7 @@ int join(node * self, int x){
 		if (strcmp(buffer, "OK") == 0){
 			printf("Anel %d criado\n", x);
 			self->ring = x;
+			self->boot = 1;
 			close(fd);
 			return 0;
 		}
@@ -175,10 +177,16 @@ int join(node * self, int x){
 		n = sscanf(buffer, "%s %d %d %s %d", command, &x, &j, ip, &tcp);
 		if(n != 5) return 1;
 		if(strcmp(command, "BRSP") == 0){
+			if(self->id.id == j){
+				printf("Este nó já existe, escolhe outro\n");
+				close(fd);
+				return 1;
+			}else{
 			self->succi.id = j;
 			self->succi.addr = getIP(ip, tcp);
 			self->ring = x;
 			err = join_succi(self, 0);
+			}
 		}
 	}
 	close(fd);
@@ -215,26 +223,48 @@ int leave(node * self){
 		return 1;
 	}
 	
-	fd=socket(AF_INET, SOCK_DGRAM,0);
-	if(fd==-1)exit(1);
-	
-	sprintf(buffer, "UNR %d", self->ring);
-  	n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
-	if(n==-1)exit(1);
+	if(self->boot){
+		fd=socket(AF_INET, SOCK_DGRAM,0);
+		if(fd==-1)exit(1);
+		
+		n = write(self->fd.succi, "BOOT\n", _SIZE_MAX_);
+		memset(buffer, '\0', _SIZE_MAX_);
+		sprintf(buffer, "REG %d %d %s %d\n", self->ring, self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
+		n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
+		memset(buffer, '\0', _SIZE_MAX_);
+		addrlen=sizeof(self->udp_server);
+		n = recvfrom(fd,buffer,_SIZE_MAX_,0,(struct sockaddr*)&self->udp_server,&addrlen);
+		
+		memset(buffer, '\0', _SIZE_MAX_);
+		sprintf(buffer, "UNR %d", self->ring);
+		n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
+		if(n==-1)exit(1);
 
-	memset(buffer, '\0', _SIZE_MAX_);
+		memset(buffer, '\0', _SIZE_MAX_);
 
-	addrlen=sizeof(self->udp_server);
-	n = recvfrom(fd,buffer,_SIZE_MAX_,0,(struct sockaddr*)&self->udp_server,&addrlen);
-	if(n==-1)exit(1);
+		n = recvfrom(fd,buffer,_SIZE_MAX_,0,(struct sockaddr*)&self->udp_server,&addrlen);
+		if(n==-1)exit(1);
+		
+		if(strcmp(buffer, "OK")==0){
+			printf("Anel %d apagado\n", self->ring);
+			self->ring = -1;
+			close(fd);
+			return 0;
+		}
 	
-	if(strcmp(buffer, "OK")==0){
-		printf("Anel %d apagado\n", self->ring);
-		self->ring = -1;
-		close(fd);
-		return 0;
 	}
-	printf("Ocorreu algum problema\n");
+	memset(buffer, '\0', _SIZE_MAX_);
+	sprintf(buffer, "CON %d %s %d\n", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
+	n = write(self->fd.predi, buffer, _SIZE_MAX_);
+
+	close(self->fd.succi);
+	close(self->fd.predi);
+	self->fd.predi = -1;
+	self->fd.succi = -1;
+	self->predi.id = -1;
+	self->succi.id = -1;
+	self->boot = 0;
+	printf("Estou pronto para juntar a outro anel\n");
 	return 1;
 }
 
@@ -328,12 +358,23 @@ int switch_listen(char * command, int fd, node * self){
 	if(strcmp(buffer, "SUCC") == 0){
 		n = sscanf(command, "%*s %d %s %d", &id, id_ip, &id_tcp);
 		if (n != 3) return 1; //codigo de erro
+		if(self->id.id == id){
+			printf("Nó ja existente, escolhe outro\n");
+			self->succi.id = -1;
+			close(self->fd.succi);
+		}else{
 		self->succi.id = id;
 		self->succi.addr = getIP(id_ip, id_tcp);
 		printf("Fechar o socket %d (succi)\n", self->fd.succi);
 		close(self->fd.succi);
 		err = join_succi(self, 1);
+		}
 	}
+	if(strcmp(buffer, "BOOT") == 0){
+		self->boot = 1;
+		err = 0;
+	}
+	
 	return err;
 }
 

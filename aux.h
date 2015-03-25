@@ -33,6 +33,7 @@ typedef struct node{
 	node_data predi;
 	node_data succi;
 	struct sockaddr_in udp_server;
+	int boot;
 	int ring;
 	sockets fd;
 } node;
