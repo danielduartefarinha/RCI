@@ -339,11 +339,16 @@ int switch_listen(char * command, int fd, node * self){
 	if(strcmp(buffer, "CON") == 0){
 		n = sscanf(command, "%*s %d %s %d", &id, id_ip, &id_tcp);
 		if (n != 3) return 1; //codigo de erro
-		self->succi.id = id;
-		self->succi.addr = getIP(id_ip, id_tcp);
-		printf("Fechar o socket %d (succi)\n", self->fd.succi);
-		close(self->fd.succi);
-		err = join_succi(self, 1);
+		if(self->id.id == id){
+			self->succi.id == -1;
+			self->predi.id == 1;
+		}else{
+			self->succi.id = id;
+			self->succi.addr = getIP(id_ip, id_tcp);
+			printf("Fechar o socket %d (succi)\n", self->fd.succi);
+			close(self->fd.succi);
+			err = join_succi(self, 1);
+		}
 	}	
 	if(strcmp(buffer, "QRY") == 0){
 		n = sscanf(command, "%*s %d %d", &id, &k);
