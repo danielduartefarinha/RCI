@@ -1,3 +1,14 @@
+/* 					Gestão sinais de erro
+ * -------------------------------------------------------------------
+ * 		<err> 		|					<meaning>
+ * -------------------------------------------------------------------
+ * 		  0			|	Está tudo bem, em todos os casos
+ * 		  1			|	Search retorna o próprio nó (usado após ID i)
+ * 		-10			|	Usado para definir o estado <busy> na main
+ * 		 12			|	Usado para sair do estado <busy> na main
+ * -------------------------------------------------------------------
+*/
+
 #ifndef AUX_H
 #define AUX_H
 
