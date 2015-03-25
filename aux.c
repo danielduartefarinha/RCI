@@ -341,7 +341,7 @@ int switch_listen(char * command, int fd, node * self){
 		if (n != 3) return 1; //codigo de erro
 		if(self->id.id == id){
 			self->succi.id == -1;
-			self->predi.id == 1;
+			self->predi.id == -1;
 		}else{
 			self->succi.id = id;
 			self->succi.addr = getIP(id_ip, id_tcp);
