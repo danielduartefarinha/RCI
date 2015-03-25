@@ -79,6 +79,7 @@ node Init_Node(char ** argv, int argc){
 	new.predi.id = -1;
 	new.succi.id = -1;
 	new.udp_server = getIP(bootip, bootport);
+	
 	new.ring = -1;	// Inicialização do numero do anel a -1
 	
 	new.fd.keyboard = 0;
@@ -108,7 +109,7 @@ int search(node * self, int k){
 	}
 }
 
-int join_succi(node * self){
+int join_succi(node * self, int new){
 	int err, addrlen;
 	char buffer[_SIZE_MAX_];
 	
@@ -123,7 +124,12 @@ int join_succi(node * self){
 	if (err == -1) printf("error: %s\n", strerror(errno));
 	
 	memset((void *) buffer, (int) '\0', _SIZE_MAX_);
-	sprintf(buffer, "NEW %d %s %hu\n", self->id.id, inet_ntoa(self->id.addr.sin_addr), ntohs(self->id.addr.sin_port));
+	
+	if(new) 
+		sprintf(buffer, "NEW %d %s %hu\n", self->id.id, inet_ntoa(self->id.addr.sin_addr), ntohs(self->id.addr.sin_port));
+	else
+		sprintf(buffer, "ID %d\n", self->id.id);
+		
 	write(self->fd.succi, buffer, (size_t) _SIZE_MAX_);
 	
 	printf("Enviado para o nó %d %s %hu a mensagem %s", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port), buffer);
@@ -132,8 +138,10 @@ int join_succi(node * self){
 }
 
 int join(node * self, int x){
-	int fd, addrlen, n;
+	int fd, addrlen, n, x, j, tcp;
+	char command[_SIZE_MAX_], ip[_SIZE_MAX_];
 	char buffer[_SIZE_MAX_];
+	
 	
 	fd=socket(AF_INET, SOCK_DGRAM,0);
 	if(fd==-1)exit(1);
@@ -161,6 +169,15 @@ int join(node * self, int x){
 			self->ring = x;
 			close(fd);
 			return 0;
+		}
+	}else{
+		n = sscanf(buffer, "%s %d %d %s %d", command, &x, &j, ip, &tcp);
+		if(n != 5) return 1;
+		if(strcmp(command, "BRSP") == 0){
+			self->succi.id = j;
+			self->succi.addr = getIP(ip, tcp);
+			self->ring = x;
+			err = join_succi(self, 0);
 		}
 	}
 	close(fd);
@@ -256,7 +273,7 @@ int switch_listen(char * command, int fd, node * self){
 		if(self->succi.id == -1){
 			self->succi.id = id;
 			self->succi.addr = getIP(id_ip, id_tcp);
-			err = join_succi(self);
+			err = join_succi(self, 1);
 		}
 	}
 	if(strcmp(buffer, "CON") == 0){
@@ -266,7 +283,7 @@ int switch_listen(char * command, int fd, node * self){
 		self->succi.addr = getIP(id_ip, id_tcp);
 		printf("Fechar o socket %d (succi)\n", self->fd.succi);
 		close(self->fd.succi);
-		err = join_succi(self);
+		err = join_succi(self, 1);
 	}
 	if(strcmp(buffer, "QRY") == 0){
 		n = sscanf(command, "%*s %d %d", &id, &k);
@@ -283,13 +300,34 @@ int switch_listen(char * command, int fd, node * self){
 		n = sscanf(command, "%*s %d %d %d %s %d", &j, &k, &id, id_ip, &id_tcp);
 		if (n != 5) return 1; //codigo de erro
 		if(j == self->id.id){
-			printf("O nó %d é responsavel por %d\n", id, k);
-			err = 0;
+			if(fd == -1){
+				printf("O nó %d é responsavel por %d\n", id, k);
+				err = 0;
+			}else{
+				sprintf(buffer, "SUCC %d %s %d\n", id, id_ip, id_tcp);
+				n = write(fd, buffer, _SIZE_MAX_);
+				printf("Enviado para o nó externo a mensagem %s", buffer);
+			}
 		}else{
 			n = write(self->fd.predi, command, _SIZE_MAX_);
 			err = 0;
 		}
 	}	
+	if(strcmp(buffer, "ID") == 0){
+		n = sscanf(command, "%*s %d", &k);
+		if(n != 1) return 1; //codigo de erro
+		search(self, k);
+		err = -10;
+	}
+	if(strcmp(buffer, "SUCC") == 0){
+		n = sscanf(command, "%*s %d %s %d", &id, id_ip, &id_tcp);
+		if (n != 3) return 1; //codigo de erro
+		self->succi.id = id;
+		self->succi.addr = getIP(id_ip, id_tcp);
+		printf("Fechar o socket %d (succi)\n", self->fd.succi);
+		close(self->fd.succi);
+		err = join_succi(self, 1);
+	}
 	return err;
 }
 
@@ -339,7 +377,7 @@ int switch_cmd(char * command, node * self){
 					self->succi.id = succi;
 					self->succi.addr = getIP(succiIP, succiTCP);
 					self->ring = x;
-					err = join_succi(self);
+					err = join_succi(self, 1);
 				}else{
 					printf("O nó ja está inserido no anel %d, não pode ser adicionado a outro\n", self->ring);
 					err = 3;

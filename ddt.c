@@ -10,7 +10,7 @@ int main(int argc, char ** argv){
 	struct sockaddr_in addr;
 	int aux_addrlen;
 	
-	// enum {idle, busy} state; Para já não está a ser usado
+	enum {idle, busy} state;
 		
 	// ERROS
 	
@@ -35,9 +35,10 @@ int main(int argc, char ** argv){
 	
 	while(1){
 		FD_ZERO(&rfds);
-		FD_SET(self.fd.keyboard, &rfds);
-		FD_SET(self.fd.listener, &rfds);
-		maxfd = self.fd.listener;
+		if(state != busy){
+			FD_SET(self.fd.keyboard, &rfds);
+			FD_SET(self.fd.listener, &rfds);
+		}
 		if (self.fd.predi != -1){
 			FD_SET(self.fd.predi, &rfds);
 			if(self.fd.predi > maxfd) maxfd = self.fd.predi;
@@ -68,6 +69,7 @@ int main(int argc, char ** argv){
 			n = read(fd_aux, buffer, _SIZE_MAX_);
 			printf("Someone said: %s", buffer);
 			err = switch_listen(buffer, fd_aux, &self);
+			if (err == -10) state = busy;
 			memset((void *) buffer, (int) '\0', _SIZE_MAX_);
 		}			
 		
@@ -81,6 +83,17 @@ int main(int argc, char ** argv){
 		if (FD_ISSET(self.fd.succi, &rfds)){
 			n = read(self.fd.succi, buffer, _SIZE_MAX_);
 			printf("Succi sent: %s", buffer);
+			switch (state){
+				case idle:
+					err = switch_listen(buffer, -1, &self);
+					break;
+				case busy:
+					err = switch_listen(buffer, fd_aux, &self);
+					break;
+				default:
+					break;
+			}
+			
 			err = switch_listen(buffer, -1, &self);
 			memset((void *) buffer, (int) '\0', _SIZE_MAX_); 			
 		}
