@@ -228,56 +228,61 @@ int leave(node * self){
 		fd=socket(AF_INET, SOCK_DGRAM,0);
 		if(fd==-1)exit(1);
 		
-		n = write(self->fd.succi, "BOOT\n", _SIZE_MAX_);
-		if(n==-1)exit(1);
-		printf("Enviei ao succi a mensagem BOOT\n");
+		if(self->succi.id == -1){
+			printf("Estou sozinho :'(\n");
+			memset(buffer, '\0', _SIZE_MAX_);
+			sprintf(buffer, "UNR %d", self->ring);
+			n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
+			if(n==-1)exit(1);
+			printf("Enviei ao servidor UDP a mensagem %s", buffer);
 		
-		memset(buffer, '\0', _SIZE_MAX_);
-		sprintf(buffer, "REG %d %d %s %d\n", self->ring, self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
-		n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
-		if(n==-1)exit(1);
-		printf("Enviei ao servidor UDP a mensagem %s", buffer);
+			memset(buffer, '\0', _SIZE_MAX_);
+			n = recvfrom(fd,buffer,_SIZE_MAX_,0,(struct sockaddr*)&self->udp_server,&addrlen);
+			if(n==-1)exit(1);
+			printf("O servidor respondeu com um %s\n", buffer);
 		
-		memset(buffer, '\0', _SIZE_MAX_);
-		addrlen=sizeof(self->udp_server);
-		n = recvfrom(fd,buffer,_SIZE_MAX_,0,(struct sockaddr*)&self->udp_server,&addrlen);
-		if(n==-1)exit(1);
-		printf("O servidor respondeu com um %s\n", buffer);
-		
-		memset(buffer, '\0', _SIZE_MAX_);
-		sprintf(buffer, "UNR %d", self->ring);
-		n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
-		if(n==-1)exit(1);
-		printf("Enviei ao servidor UDP a mensagem %s", buffer);
-		
-		memset(buffer, '\0', _SIZE_MAX_);
-		n = recvfrom(fd,buffer,_SIZE_MAX_,0,(struct sockaddr*)&self->udp_server,&addrlen);
-		if(n==-1)exit(1);
-		printf("O servidor respondeu com um %s\n", buffer);
-		
-		if(strcmp(buffer, "OK")==0){
-			printf("Anel %d apagado\n", self->ring);
-			self->ring = -1;
-			close(fd);
-			return 0;
-		}
-	
-	}
-	memset(buffer, '\0', _SIZE_MAX_);
-	sprintf(buffer, "CON %d %s %d\n", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
-	n = write(self->fd.predi, buffer, _SIZE_MAX_);
-	if(n==-1)exit(1);
-	printf("Enviei ao succi a mensagem %s", buffer);
+			if(strcmp(buffer, "OK")==0){
+				printf("Anel %d apagado\n", self->ring);
+				self->ring = -1;
+				close(fd);
+				return 0;
+			}
+		}else{
+			printf("Não estou sozinho =D\nMas vou ficar :'(\n");	
+			n = write(self->fd.succi, "BOOT\n", _SIZE_MAX_);
+			if(n==-1)exit(1);
+			printf("Enviei ao succi a mensagem BOOT\n");
+			
+			memset(buffer, '\0', _SIZE_MAX_);
+			sprintf(buffer, "REG %d %d %s %d\n", self->ring, self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
+			n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
+			if(n==-1)exit(1);
+			printf("Enviei ao servidor UDP a mensagem %s", buffer);
+			
+			memset(buffer, '\0', _SIZE_MAX_);
+			addrlen=sizeof(self->udp_server);
+			n = recvfrom(fd,buffer,_SIZE_MAX_,0,(struct sockaddr*)&self->udp_server,&addrlen);
+			if(n==-1)exit(1);
+			printf("O servidor respondeu com um %s\n", buffer);
+			
+			memset(buffer, '\0', _SIZE_MAX_);
+			sprintf(buffer, "CON %d %s %d\n", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
+			n = write(self->fd.predi, buffer, _SIZE_MAX_);
+			if(n==-1)exit(1);
+			printf("Enviei ao succi a mensagem %s", buffer);
 
-	close(self->fd.succi);
-	close(self->fd.predi);
-	self->fd.predi = -1;
-	self->fd.succi = -1;
-	self->predi.id = -1;
-	self->succi.id = -1;
-	self->boot = 0;
-	printf("Estou pronto para juntar a outro anel\n");
-	return 1;
+			close(self->fd.succi);
+			close(self->fd.predi);
+			self->fd.predi = -1;
+			self->fd.succi = -1;
+			self->predi.id = -1;
+			self->succi.id = -1;
+			self->boot = 0;		
+		}
+	}
+	
+	printf("Estou pronto para juntar a outro anel =D\n");
+	return 0;
 }
 
 void exit_app(node * self){
