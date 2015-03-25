@@ -294,8 +294,12 @@ int leave(node * self){
 			self->boot = 0;		
 		}
 	}else{
-		// Não sou BOOT
-		
+			
+			memset(buffer, '\0', _SIZE_MAX_);
+			sprintf(buffer, "CON %d %s %d\n", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
+			n = write(self->fd.predi, buffer, _SIZE_MAX_);
+			if(n==-1)exit(1);
+			printf("Enviei ao predi a mensagem %s", buffer);
 	}
 	
 	printf("Estou pronto para juntar a outro anel =D\n");
@@ -343,13 +347,15 @@ int switch_listen(char * command, int fd, node * self){
 	if(strcmp(buffer, "CON") == 0){
 		n = sscanf(command, "%*s %d %s %d", &id, id_ip, &id_tcp);
 		if (n != 3) return 1; //codigo de erro
-		if(self->id.id == id){
+		printf("estou antes do if %d == %d?\n", self->id.id, id);
+		if(self->predi.id == id){
 			self->succi.id == -1;
 			self->predi.id == -1;
 			close(self->fd.succi);
 			close(self->fd.predi);
 			self->fd.predi = -1;
 			self->fd.succi = -1;
+			printf("estou depois do if %d == %d\n", self->id.id, id);
 		}else{
 			self->succi.id = id;
 			self->succi.addr = getIP(id_ip, id_tcp);
