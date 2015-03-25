@@ -346,6 +346,10 @@ int switch_listen(char * command, int fd, node * self){
 		if(self->id.id == id){
 			self->succi.id == -1;
 			self->predi.id == -1;
+			close(self->fd.succi);
+			close(self->fd.predi);
+			self->fd.predi = -1;
+			self->fd.succi = -1;
 		}else{
 			self->succi.id = id;
 			self->succi.addr = getIP(id_ip, id_tcp);
