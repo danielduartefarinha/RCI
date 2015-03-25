@@ -223,12 +223,15 @@ int leave(node * self){
 	int fd, addrlen, n;
 	char buffer[_SIZE_MAX_];
 	
+	// Caso o nó não esteja em nenhum anel 
+	
 	if (self->ring == -1){
 		printf("O nó não está inserido em nenhum anel\n");
 		return 1;
 	}
-	
-	if(self->boot){
+
+	if(self->boot){				
+		// Sou BOOT?
 		fd=socket(AF_INET, SOCK_DGRAM,0);
 		if(fd==-1)exit(1);
 		
@@ -248,6 +251,7 @@ int leave(node * self){
 			if(strcmp(buffer, "OK")==0){
 				printf("Anel %d apagado\n", self->ring);
 				self->ring = -1;
+				self->id.id = -1;
 				close(fd);
 				return 0;
 			}
@@ -281,8 +285,13 @@ int leave(node * self){
 			self->fd.succi = -1;
 			self->predi.id = -1;
 			self->succi.id = -1;
+			self->ring = -1;
+			self->id.id = -1;
 			self->boot = 0;		
 		}
+	}else{
+		// Não sou BOOT
+		printf("Eh pá, ainda não está implementado\n");
 	}
 	
 	printf("Estou pronto para juntar a outro anel =D\n");
@@ -386,7 +395,9 @@ int switch_listen(char * command, int fd, node * self){
 		if (n != 3) return 1; //codigo de erro
 		if(self->id.id == id){
 			printf("Nó ja existente, escolhe outro\n");
+			
 			self->succi.id = -1;
+			self->ring = -1;
 			close(self->fd.succi);
 		}else{
 		self->succi.id = id;
