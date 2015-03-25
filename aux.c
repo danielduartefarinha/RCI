@@ -171,6 +171,7 @@ int join(node * self, int x){
 			return 0;
 		}
 	}else{
+		printf("Anel %d já existente\n", x);
 		n = sscanf(buffer, "%s %d %d %s %d", command, &x, &j, ip, &tcp);
 		if(n != 5) return 1;
 		if(strcmp(command, "BRSP") == 0){
@@ -181,7 +182,6 @@ int join(node * self, int x){
 		}
 	}
 	close(fd);
-	printf("Anel %d já existente\n", x);
 	return 1;
 }
 
@@ -306,6 +306,7 @@ int switch_listen(char * command, int fd, node * self){
 			}else{
 				sprintf(buffer, "SUCC %d %s %d\n", id, id_ip, id_tcp);
 				n = write(fd, buffer, _SIZE_MAX_);
+				err = 12;
 				printf("Enviado para o nó externo a mensagem %s", buffer);
 			}
 		}else{
@@ -314,10 +315,15 @@ int switch_listen(char * command, int fd, node * self){
 		}
 	}	
 	if(strcmp(buffer, "ID") == 0){
+		if(self->succi.id == -1){
+			sprintf(buffer, "SUCC %d %s %d\n", self->id.id, inet_ntoa(self->id.addr.sin_addr),ntohs(self->id.addr.sin_port));
+			n = write(fd, buffer, _SIZE_MAX_);
+		}else{
 		n = sscanf(command, "%*s %d", &k);
 		if(n != 1) return 1; //codigo de erro
 		search(self, k);
 		err = -10;
+		}
 	}
 	if(strcmp(buffer, "SUCC") == 0){
 		n = sscanf(command, "%*s %d %s %d", &id, id_ip, &id_tcp);

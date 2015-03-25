@@ -89,12 +89,13 @@ int main(int argc, char ** argv){
 					break;
 				case busy:
 					err = switch_listen(buffer, fd_aux, &self);
+					if(err == 12) state = idle;
 					break;
 				default:
 					break;
 			}
 			
-			err = switch_listen(buffer, -1, &self);
+		
 			memset((void *) buffer, (int) '\0', _SIZE_MAX_); 			
 		}
 		
