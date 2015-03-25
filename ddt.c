@@ -99,10 +99,6 @@ int main(int argc, char ** argv){
 		}
 		
 	}
-		
-	// err = switch_cmd(instruction, &self);
-	// if (err == 1) exit(1); //código de erro
-	
 	exit(0);
 }
 
