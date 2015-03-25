@@ -1,0 +1,12 @@
+Indicações de testes a correr nos projectos 
+	• Comunicação com o servidor de arranque. Join 
+	• Anel com dois nós. Join succi 
+	• Anel com três nós. Join succi 
+	• Pesquisa de identificador. Search 
+	• Anel com quatro nós. Join 
+	• Saida de um nó. Leave 
+	• Saída do nó de arranque. Leave 
+	• Estrutura 
+	• Terminação graciosa //Temporizador de rcvfrom 
+	
+	+ Extras -Bloqueio
