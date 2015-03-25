@@ -102,11 +102,11 @@ int search(node * self, int k){
 	if (dist(k, self->id.id) < dist(self->predi.id, self->id.id)){
 		printf("Sou eu o responsável! Vou responder!\n");
 		printf("O nó %d (eu) é responsavel por %d\n", self->id.id, k);
+		return 1;
 	}else{
 		sprintf(buffer, "QRY %d %d\n", self->id.id, k);
 		n = write(self->fd.succi, buffer, _SIZE_MAX_);
-		if (n > 0) return 0;
-		else return 1;
+		return 0;
 	}
 }
 
@@ -196,6 +196,7 @@ int join(node * self, int x){
 int show(node * self){
 	print_interface(2);
 	printf("Olá sou o %s:%hu\n", inet_ntoa(self->id.addr.sin_addr), ntohs(self->id.addr.sin_port));
+	if (self->boot) printf("Sou o BOOT :P\n");
 	if(self->ring != -1){
 		printf("Estou inserido no anel: %d e sou o nó: %d\n", self->ring, self->id.id);
 	}else{
@@ -228,22 +229,31 @@ int leave(node * self){
 		if(fd==-1)exit(1);
 		
 		n = write(self->fd.succi, "BOOT\n", _SIZE_MAX_);
+		if(n==-1)exit(1);
+		printf("Enviei ao succi a mensagem BOOT\n");
+		
 		memset(buffer, '\0', _SIZE_MAX_);
 		sprintf(buffer, "REG %d %d %s %d\n", self->ring, self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
 		n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
+		if(n==-1)exit(1);
+		printf("Enviei ao servidor UDP a mensagem %s", buffer);
+		
 		memset(buffer, '\0', _SIZE_MAX_);
 		addrlen=sizeof(self->udp_server);
 		n = recvfrom(fd,buffer,_SIZE_MAX_,0,(struct sockaddr*)&self->udp_server,&addrlen);
+		if(n==-1)exit(1);
+		printf("O servidor respondeu com um %s\n", buffer);
 		
 		memset(buffer, '\0', _SIZE_MAX_);
 		sprintf(buffer, "UNR %d", self->ring);
 		n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
 		if(n==-1)exit(1);
-
+		printf("Enviei ao servidor UDP a mensagem %s", buffer);
+		
 		memset(buffer, '\0', _SIZE_MAX_);
-
 		n = recvfrom(fd,buffer,_SIZE_MAX_,0,(struct sockaddr*)&self->udp_server,&addrlen);
 		if(n==-1)exit(1);
+		printf("O servidor respondeu com um %s\n", buffer);
 		
 		if(strcmp(buffer, "OK")==0){
 			printf("Anel %d apagado\n", self->ring);
@@ -256,6 +266,8 @@ int leave(node * self){
 	memset(buffer, '\0', _SIZE_MAX_);
 	sprintf(buffer, "CON %d %s %d\n", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
 	n = write(self->fd.predi, buffer, _SIZE_MAX_);
+	if(n==-1)exit(1);
+	printf("Enviei ao succi a mensagem %s", buffer);
 
 	close(self->fd.succi);
 	close(self->fd.predi);
@@ -349,10 +361,15 @@ int switch_listen(char * command, int fd, node * self){
 			sprintf(buffer, "SUCC %d %s %d\n", self->id.id, inet_ntoa(self->id.addr.sin_addr),ntohs(self->id.addr.sin_port));
 			n = write(fd, buffer, _SIZE_MAX_);
 		}else{
-		n = sscanf(command, "%*s %d", &k);
-		if(n != 1) return 1; //codigo de erro
-		search(self, k);
-		err = -10;
+			n = sscanf(command, "%*s %d", &k);
+			if(n != 1) return -1; //codigo de erro
+			
+			if(search(self, k) == 1){
+				sprintf(buffer, "SUCC %d %s %d\n", self->id.id, inet_ntoa(self->id.addr.sin_addr),ntohs(self->id.addr.sin_port));
+				n = write(fd, buffer, _SIZE_MAX_);
+			}else{
+				err = -10;
+			}
 		}
 	}
 	if(strcmp(buffer, "SUCC") == 0){
