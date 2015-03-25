@@ -147,21 +147,24 @@ int join(node * self, int x){
 	fd=socket(AF_INET, SOCK_DGRAM,0);
 	if(fd==-1)exit(1);
 	
-	sprintf(buffer, "BQRY %d", x);
+	sprintf(buffer, "BQRY %d\n", x);
   	n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
 	if(n==-1)exit(1);
+	printf("Enviei ao servidor UDP a mensagem %s", buffer);
 
 	memset(buffer, '\0', _SIZE_MAX_);
 
 	addrlen=sizeof(self->udp_server);
 	n = recvfrom(fd,buffer,_SIZE_MAX_,0,(struct sockaddr*)&self->udp_server,&addrlen);
 	if(n==-1)exit(1);
+	printf("O servidor respondeu com um %s\n", buffer);
 	
 	if(strcmp(buffer, "EMPTY")==0){
-		printf("EMPTY\nbora fazer um REG\n");
-		sprintf(buffer, "REG %d %d %s %hu", x, self->id.id, inet_ntoa(self->id.addr.sin_addr),ntohs(self->id.addr.sin_port));
+		sprintf(buffer, "REG %d %d %s %hu\n", x, self->id.id, inet_ntoa(self->id.addr.sin_addr),ntohs(self->id.addr.sin_port));
 		n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
 		if(n==-1)exit(1);
+		printf("Enviei ao servidor UDP a mensagem %s", buffer);
+		
 		memset(buffer, '\0', _SIZE_MAX_);
 		n = recvfrom(fd,buffer,_SIZE_MAX_,0,(struct sockaddr*)&self->udp_server,&addrlen);
 		if(n==-1)exit(1);
@@ -231,7 +234,7 @@ int leave(node * self){
 		if(self->succi.id == -1){
 			printf("Estou sozinho :'(\n");
 			memset(buffer, '\0', _SIZE_MAX_);
-			sprintf(buffer, "UNR %d", self->ring);
+			sprintf(buffer, "UNR %d\n", self->ring);
 			n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
 			if(n==-1)exit(1);
 			printf("Enviei ao servidor UDP a mensagem %s", buffer);
