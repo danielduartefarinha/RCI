@@ -257,9 +257,6 @@ int leave(node * self){
 			}
 		}else{
 			printf("Não estou sozinho =D\nMas vou ficar :'(\n");	
-			n = write(self->fd.succi, "BOOT\n", _SIZE_MAX_);
-			if(n==-1)exit(1);
-			printf("Enviei ao succi a mensagem BOOT\n");
 			
 			memset(buffer, '\0', _SIZE_MAX_);
 			sprintf(buffer, "REG %d %d %s %d\n", self->ring, self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
@@ -272,6 +269,10 @@ int leave(node * self){
 			n = recvfrom(fd,buffer,_SIZE_MAX_,0,(struct sockaddr*)&self->udp_server,&addrlen);
 			if(n==-1)exit(1);
 			printf("O servidor respondeu com um %s\n", buffer);
+			
+			n = write(self->fd.succi, "BOOT\n", _SIZE_MAX_);
+			if(n==-1)exit(1);
+			printf("Enviei ao succi a mensagem BOOT\n");
 			
 			memset(buffer, '\0', _SIZE_MAX_);
 			sprintf(buffer, "CON %d %s %d\n", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
