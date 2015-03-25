@@ -138,7 +138,7 @@ int join_succi(node * self, int new){
 }
 
 int join(node * self, int x){
-	int fd, addrlen, n, x, j, tcp;
+	int fd, addrlen, n, j, tcp, err;
 	char command[_SIZE_MAX_], ip[_SIZE_MAX_];
 	char buffer[_SIZE_MAX_];
 	
