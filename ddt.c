@@ -38,6 +38,7 @@ int main(int argc, char ** argv){
 		if(state != busy){
 			FD_SET(self.fd.keyboard, &rfds);
 			FD_SET(self.fd.listener, &rfds);
+			maxfd = self.fd.listener;
 		}
 		if (self.fd.predi != -1){
 			FD_SET(self.fd.predi, &rfds);
@@ -52,7 +53,10 @@ int main(int argc, char ** argv){
 				
 		print_interface(1);
 		n = select(maxfd+1, &rfds, (fd_set *) NULL, (fd_set *) NULL, (struct timeval *) NULL);
-		if (n <= 0) exit(1);
+		if (n <= 0){
+			printf("Problema com select\n");
+			exit(1);
+		}
 			
 		if (FD_ISSET(self.fd.keyboard, &rfds)){
 			fgets(instruction, _SIZE_MAX_, stdin);
@@ -94,8 +98,6 @@ int main(int argc, char ** argv){
 				default:
 					break;
 			}
-			
-		
 			memset((void *) buffer, (int) '\0', _SIZE_MAX_); 			
 		}
 		
