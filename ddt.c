@@ -32,7 +32,7 @@ int main(int argc, char ** argv){
 	if(listen(self.fd.listener, 5) == -1) exit(1);
 	
 	print_interface(0);  // Interface Utilizador
-	
+	state = idle;
 	while(1){
 		FD_ZERO(&rfds);
 		if(state != busy){
