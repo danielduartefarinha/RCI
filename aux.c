@@ -230,11 +230,13 @@ int leave(node * self){
 		return 1;
 	}
 
+	fd=socket(AF_INET, SOCK_DGRAM,0);
+	if(fd==-1)exit(1);
+		
+
 	if(self->boot){				
 		// Sou BOOT?
-		fd=socket(AF_INET, SOCK_DGRAM,0);
-		if(fd==-1)exit(1);
-		
+
 		if(self->succi.id == -1){
 			printf("Estou sozinho :'(\n");
 			memset(buffer, '\0', _SIZE_MAX_);
@@ -252,6 +254,7 @@ int leave(node * self){
 				printf("Anel %d apagado\n", self->ring);
 				self->ring = -1;
 				self->id.id = -1;
+				self->boot = 0;
 				close(fd);
 				return 0;
 			}
@@ -292,7 +295,7 @@ int leave(node * self){
 		}
 	}else{
 		// Não sou BOOT
-		printf("Eh pá, ainda não está implementado\n");
+		
 	}
 	
 	printf("Estou pronto para juntar a outro anel =D\n");
@@ -405,6 +408,7 @@ int switch_listen(char * command, int fd, node * self){
 			self->succi.id = -1;
 			self->ring = -1;
 			close(self->fd.succi);
+			self->fd.succi = -1;
 		}else{
 			self->succi.id = id;
 			self->succi.addr = getIP(id_ip, id_tcp);
