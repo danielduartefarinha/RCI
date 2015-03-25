@@ -168,6 +168,7 @@ int join(node * self, int x){
 		memset(buffer, '\0', _SIZE_MAX_);
 		n = recvfrom(fd,buffer,_SIZE_MAX_,0,(struct sockaddr*)&self->udp_server,&addrlen);
 		if(n==-1)exit(1);
+		printf("O servidor respondeu com um %s\n", buffer);
 		if (strcmp(buffer, "OK") == 0){
 			printf("Anel %d criado\n", x);
 			self->ring = x;
@@ -272,7 +273,7 @@ int leave(node * self){
 			sprintf(buffer, "CON %d %s %d\n", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
 			n = write(self->fd.predi, buffer, _SIZE_MAX_);
 			if(n==-1)exit(1);
-			printf("Enviei ao succi a mensagem %s", buffer);
+			printf("Enviei ao predi a mensagem %s", buffer);
 
 			close(self->fd.succi);
 			close(self->fd.predi);
