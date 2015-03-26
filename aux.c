@@ -18,7 +18,8 @@ void print_interface(node * self, int n){
 			print_verbose(message, self->verbose);
 			break;
 		case 2:
-			printf("**********************************************************\n");
+			sprintf(message, "**********************************************************\n");
+			print_verbose(message, !self->verbose);
 			break;
 		default:
 			break;
@@ -246,12 +247,19 @@ int show(node * self){
 		if(self->ring != -1){
 			printf("Ring: %d\n", self->ring);
 			printf("Node: %d\n", self->id.id);
+		}else{
+			printf("Ring: NULL\n");
 		}
+
 		if(self->predi.id != -1){
 			printf("Predi: %d     [%s:%hu]\n", self->predi.id, inet_ntoa(self->predi.addr.sin_addr), ntohs(self->predi.addr.sin_port));
+		}else{
+			printf("Predi: NULL\n");
 		}
 		if(self->succi.id != -1){
-			printf("Predi: %d     [%s:%hu]\n", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
+			printf("Succi: %d     [%s:%hu]\n", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
+		}else{
+			printf("Succi: NULL");
 		}
 	}
 	return 0;
