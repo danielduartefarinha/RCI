@@ -285,6 +285,8 @@ int leave(node * self){
 		printf("Enviei ao predi a mensagem %s", buffer);
 		close(self->fd.succi);
 		close(self->fd.predi);
+		printf("Fechar o socket %d (predi)\n", self->fd.predi);
+		printf("Fechar o socket %d (succi)\n", self->fd.succi);
 		self->fd.predi = -1;
 		self->fd.succi = -1;
 		self->predi.id = -1;
@@ -342,6 +344,8 @@ int switch_listen(char * command, int fd, node * self){
 		if(self->id.id == id){
 			close(self->fd.succi);
 			close(self->fd.predi);
+			printf("Fechar o socket %d (predi)\n", self->fd.predi);
+			printf("Fechar o socket %d (succi)\n", self->fd.succi);
 			self->succi.id = -1;
 			self->predi.id = -1;
 			self->fd.predi = -1;
@@ -408,6 +412,7 @@ int switch_listen(char * command, int fd, node * self){
 			self->succi.id = -1;
 			self->ring = -1;
 			close(self->fd.succi);
+			printf("Fechar o socket %d (succi)\n", self->fd.succi);
 			self->fd.succi = -1;
 		}else{
 			self->succi.id = id;
@@ -420,6 +425,7 @@ int switch_listen(char * command, int fd, node * self){
 	if(strcmp(buffer, "BOOT") == 0){
 		self->boot = 1;
 		close(self->fd.predi);
+		printf("Fechar o socket %d (predi)\n", self->fd.predi);
 		self->fd.predi = -1;
 		self->predi.id = -1;
 		err = 0;
