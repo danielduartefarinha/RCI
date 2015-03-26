@@ -48,33 +48,35 @@ struct sockaddr_in getIP(char * ip, int port){
 node Init_Node(char ** argv, int argc){
 	node new;
 	int i, n;
+	int verbose = 0;
 	char buffer[_SIZE_MAX_];
 	char bootip[_SIZE_MAX_] = "tejo.tecnico.ulisboa.pt";
 	int bootport = 58000;
 	int ringport = 8000; //voltar ao -1 mais tarde
 	//Trata argumentos
 	
-	new.mode_verbose = 0;
 	
-	for(i = 1; i < argc-1; i++){
+	for(i = 1; i < argc; i++){
 		if (strcmp(argv[i],"-t")==0){
+			if(i+1 == argc) continue;
 			if(argv[i+1][0] == '-') continue;
 			n = sscanf(argv[i+1], "%d", &ringport);
 			if (n != 1) exit(2);
 		}
 		if (strcmp(argv[i], "-i") == 0){
+			if(i+1 == argc) continue;
 			if(argv[i+1][0] == '-') continue;
 			strcpy(bootip, argv[i+1]);
 		}
 		if (strcmp(argv[i], "-p") == 0){
+			if(i+1 == argc) continue;
 			if(argv[i+1][0] == '-') continue;
 			n = sscanf(argv[i+1], "%d", &bootport);
 			if (n != 1) exit(2);
 		}
 		if (strcmp(argv[i], "-v") == 0){
-			new.mode_verbose = 1;
-			if (n != 1) exit(2);
-		}
+			verbose = 1;
+		}		
 	}
 
 	// Inicialização
@@ -88,10 +90,13 @@ node Init_Node(char ** argv, int argc){
 	
 	new.ring = -1;	// Inicialização do numero do anel a -1
 	new.boot = 0;
+	new.verbose = verbose;
 	
 	new.fd.keyboard = 0;
 	new.fd.predi = -1;
 	new.fd.succi = -1;
+	
+	
 	
 	return new;
 }
@@ -102,7 +107,7 @@ int dist(int k, int id){
 }
 
 void print_verbose(char * message, int mode){
-	if (mode) printf("%s",message);
+	if (mode) printf("%s", message);
 }
 
 int search(node * self, int k){
@@ -112,9 +117,9 @@ int search(node * self, int k){
 	
 	if (dist(k, self->id.id) < dist(self->predi.id, self->id.id)){
 		sprintf(message, "Sou eu o responsável! Vou responder!\n");
-		print_verbose(message, self->mode_verbose);
+		print_verbose(message, self->verbose);
 		sprintf(message, "O nó %d (eu) é responsavel por %d\n", self->id.id, k);
-		print_verbose(message, self->mode_verbose);
+		print_verbose(message, self->verbose);
 		return 1;
 	}else{
 		sprintf(buffer, "QRY %d %d\n", self->id.id, k);
@@ -155,6 +160,7 @@ int join(node * self, int x){
 	int fd, addrlen, n, j, tcp, err;
 	char command[_SIZE_MAX_], ip[_SIZE_MAX_];
 	char buffer[_SIZE_MAX_];
+	char message[_SIZE_MAX_];
 	
 	
 	fd=socket(AF_INET, SOCK_DGRAM,0);
@@ -163,8 +169,9 @@ int join(node * self, int x){
 	sprintf(buffer, "BQRY %d\n", x);
   	n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
 	if(n==-1)exit(1);
-	printf("Enviei ao servidor UDP a mensagem %s", buffer);
-
+	sprintf(message, "Enviei ao servidor UDP a mensagem %s", buffer);
+	print_verbose(message, self->verbose);
+	
 	memset(buffer, '\0', _SIZE_MAX_);
 
 	addrlen=sizeof(self->udp_server);

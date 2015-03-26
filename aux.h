@@ -47,7 +47,7 @@ typedef struct node{
 	struct sockaddr_in udp_server;
 	int boot;
 	int ring;
-	int mode_verbose;
+	int verbose;
 	sockets fd;
 } node;
 
