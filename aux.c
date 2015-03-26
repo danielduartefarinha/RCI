@@ -12,9 +12,9 @@ void print_interface(int n){
 			printf("|show                                                    |\n");
 			printf("|search k                                                |\n");
 			printf("|exit                                                    |\n");
-			break;
-		case 1:
 			printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+		case 1:
+			printf("**********************************************************\n");
 			break;
 		case 2:
 			printf("**********************************************************\n");
@@ -54,6 +54,8 @@ node Init_Node(char ** argv, int argc){
 	int ringport = 8000; //voltar ao -1 mais tarde
 	//Trata argumentos
 	
+	new.mode_verbose = 0;
+	
 	for(i = 1; i < argc-1; i++){
 		if (strcmp(argv[i],"-t")==0){
 			if(argv[i+1][0] == '-') continue;
@@ -67,6 +69,10 @@ node Init_Node(char ** argv, int argc){
 		if (strcmp(argv[i], "-p") == 0){
 			if(argv[i+1][0] == '-') continue;
 			n = sscanf(argv[i+1], "%d", &bootport);
+			if (n != 1) exit(2);
+		}
+		if (strcmp(argv[i], "-v") == 0){
+			new.mode_verbose = 1;
 			if (n != 1) exit(2);
 		}
 	}
@@ -95,13 +101,20 @@ int dist(int k, int id){
 	else return (64 + id - k);
 }
 
+void print_verbose(char * message, int mode){
+	if (mode) printf("%s",message);
+}
+
 int search(node * self, int k){
 	int n;
 	char buffer[_SIZE_MAX_];
+	char message[_SIZE_MAX_];
 	
 	if (dist(k, self->id.id) < dist(self->predi.id, self->id.id)){
-		printf("Sou eu o responsável! Vou responder!\n");
-		printf("O nó %d (eu) é responsavel por %d\n", self->id.id, k);
+		sprintf(message, "Sou eu o responsável! Vou responder!\n");
+		print_verbose(message, self->mode_verbose);
+		sprintf(message, "O nó %d (eu) é responsavel por %d\n", self->id.id, k);
+		print_verbose(message, self->mode_verbose);
 		return 1;
 	}else{
 		sprintf(buffer, "QRY %d %d\n", self->id.id, k);
