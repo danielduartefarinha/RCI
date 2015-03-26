@@ -31,7 +31,7 @@ int main(int argc, char ** argv){
 	if(bind(self.fd.listener, (struct sockaddr*)&self.id.addr, addrlen) == -1) exit(1);
 	if(listen(self.fd.listener, 5) == -1) exit(1);
 	
-	print_interface(0);  // Interface Utilizador
+	print_interface(&self, 0);  // Interface Utilizador
 	state = idle;
 	while(1){
 		FD_ZERO(&rfds);
@@ -51,7 +51,7 @@ int main(int argc, char ** argv){
 		
 		// Sempre que se fizer close tem de se colocar self.fd.* = -1
 				
-		print_interface(1);
+		print_interface(&self, 1);
 		n = select(maxfd+1, &rfds, (fd_set *) NULL, (fd_set *) NULL, (struct timeval *) NULL);
 		if (n <= 0){
 			printf("Problema com select\n");

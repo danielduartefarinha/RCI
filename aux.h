@@ -52,7 +52,7 @@ typedef struct node{
 	sockets fd;
 } node;
 
-void print_interface(int n);
+void print_interface(node * self, int n);
 struct sockaddr_in getIP(char * ip, int port);
 node Init_Node(char ** argv, int argc);
 int dist(int k, int id);

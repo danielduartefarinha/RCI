@@ -1,6 +1,6 @@
 #include "aux.h"
 
-void print_interface(int n){
+void print_interface(node * self, int n){
 	switch (n){
 		case 0:
 			printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
@@ -222,7 +222,7 @@ int join(node * self, int x){
 }
 
 int show(node * self){
-	print_interface(2);
+	print_interface(self, 2);
 	
 	if (self->verbose){
 		if(self->boot) printf("BOOT NODE\n");
@@ -419,7 +419,7 @@ int switch_listen(char * command, int fd, node * self){
 		n = sscanf(command, "%*s %d %d", &id, &k);
 		if (n != 2) return 1; //codigo de erro
 		if (dist(k, self->id.id) < dist(self->predi.id, self->id.id)){
-			sprintf("Replying... I'm responsible");
+			sprintf(message, "Replying... I'm responsible");
 			print_verbose(message, self->verbose);
 			sprintf(buffer, "RSP %d %d %d %s %d\n", id, k, self->id.id, inet_ntoa(self->id.addr.sin_addr), ntohs(self->id.addr.sin_port));
 			n = write(self->fd.predi, buffer, _SIZE_MAX_);
@@ -438,6 +438,7 @@ int switch_listen(char * command, int fd, node * self){
 				sprintf(buffer, "SUCC %d %s %d\n", id, id_ip, id_tcp);
 				n = write(fd, buffer, _SIZE_MAX_);
 				err = 12;
+				printf("Enviado para o nó externo a mensagem %s", buffer);
 				printf("Enviado para o nó externo a mensagem %s", buffer);
 			}
 		}else{
