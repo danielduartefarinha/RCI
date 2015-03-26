@@ -49,9 +49,9 @@ node Init_Node(char ** argv, int argc){
 	node new;
 	int i, n;
 	char buffer[_SIZE_MAX_];
-	char bootip[_SIZE_MAX_] = "tejo.tecnico.ulisboa.pt";
+	char bootip[_SIZE_MAX_] = "127.0.0.1";
 	int bootport = 58000;
-	int ringport = 4949; //voltar ao -1 mais tarde
+	int ringport = 8000; //voltar ao -1 mais tarde
 	//Trata argumentos
 	
 	for(i = 1; i < argc-1; i++){
@@ -259,6 +259,7 @@ int leave(node * self){
 		printf("Não estou sozinho =D\n");
 		if(self->boot){				
 		// Sou BOOT?
+			printf("Sou BOOT\n");
 			memset(buffer, '\0', _SIZE_MAX_);
 			sprintf(buffer, "REG %d %d %s %d\n", self->ring, self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
 			n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
@@ -418,6 +419,9 @@ int switch_listen(char * command, int fd, node * self){
 	}	
 	if(strcmp(buffer, "BOOT") == 0){
 		self->boot = 1;
+		close(self->fd.predi);
+		self->fd.predi = -1;
+		self->predi.id = -1;
 		err = 0;
 	}
 
@@ -430,7 +434,7 @@ int switch_cmd(char * command, node * self){
 	
 	n = sscanf(command, "%s %d %d %d %s %d", buffer, &x, &self->id.id, &succi, succiIP, &succiTCP);
 	if(self->id.id > 64){
-		printf("O identificador do nó tem de ser inferior a 64");
+		printf("O identificador do nó tem de ser inferior a 64\n");
 		self->id.id = -1;
 		return 20;
 	}
