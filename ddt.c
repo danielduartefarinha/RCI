@@ -15,7 +15,7 @@ int main(int argc, char ** argv){
 	// ERROS
 	
 	if(argc > 7){
-		printf("Incorrect number of arguments\n");
+		printf("Error: Incorrect number of arguments\n");
 		exit(-1);
 	}
 	
@@ -54,7 +54,7 @@ int main(int argc, char ** argv){
 		print_interface(&self, 1);
 		n = select(maxfd+1, &rfds, (fd_set *) NULL, (fd_set *) NULL, (struct timeval *) NULL);
 		if (n <= 0){
-			printf("Select error\n");
+			printf("Error: Select\n");
 			exit(1);
 		}
 			
@@ -67,7 +67,7 @@ int main(int argc, char ** argv){
 		if (FD_ISSET(self.fd.listener, &rfds)){
 			fd_aux = accept(self.fd.listener, (struct sockaddr *)&addr, &aux_addrlen);
 			if(fd_aux == -1){
-				printf("Accept error\n");
+				printf("Error: Accept\n");
 				exit(0);
 			}
 			n = read(fd_aux, buffer, _SIZE_MAX_);

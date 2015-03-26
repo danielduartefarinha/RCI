@@ -137,7 +137,7 @@ int join_succi(node * self, int new){
 	print_verbose(message);
 	
 	if (err == -1){
-		printf("Impossible to connect to [%s %hu]\n", inet_ntoa(self->id.addr.sin_addr), ntohs(self->id.addr.sin_port));
+		printf("Error: Impossible to connect to [%s %hu]\n", inet_ntoa(self->id.addr.sin_addr), ntohs(self->id.addr.sin_port));
 		close(self->fd.succi);
 		sprintf(message, "Closing <succi> socket: %d\n", self->fd.succi);
 		print_verbose(message);
@@ -155,7 +155,7 @@ int join_succi(node * self, int new){
 		
 	write(self->fd.succi, buffer, (size_t) _SIZE_MAX_);
 	
-	sprintf(message, "Sending to %d <succi> [%s %hu]: %s", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port), buffer);
+	sprintf(message, "Sending to %d [%s %hu]: %s", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port), buffer);
 	print_verbose(message);
 	return(0);
 	
@@ -172,33 +172,34 @@ int join(node * self, int x){
 	sprintf(buffer, "BQRY %d\n", x);
   	n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
 	if(n==-1)exit(1);
-	sprintf(message, "Enviei ao servidor UDP a mensagem %s", buffer);
-	print_verbose(message, self->verbose);
+	sprintf(message, "Sent to <%s:%hu> the message: %s", inet_ntoa(self->udp_server.addr.sin_addr), ntohs(self->udp_server.addr.sin_port), buffer);
+	print_verbose(message);
 	
 	memset(buffer, '\0', _SIZE_MAX_);
 
 	addrlen=sizeof(self->udp_server);
 	n = recvfrom(fd,buffer,_SIZE_MAX_,0,(struct sockaddr*)&self->udp_server,&addrlen);
 	if(n==-1)exit(1);
-	sprintf(message, "O servidor respondeu com um %s\n", buffer);
-	print_verbose(message, self->verbose);
+	sprintf(message, "Received from <%s:%hu> the message: %s\n", inet_ntoa(self->udp_server.addr.sin_addr), ntohs(self->udp_server.addr.sin_port), buffer);
+	print_verbose(message);
 
 	
 	if(strcmp(buffer, "EMPTY")==0){
 		sprintf(buffer, "REG %d %d %s %hu\n", x, self->id.id, inet_ntoa(self->id.addr.sin_addr),ntohs(self->id.addr.sin_port));
 		n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
 		if(n==-1)exit(1);
-		sprintf(message, "Enviei ao servidor UDP a mensagem %s", buffer);
-		print_verbose(message, self->verbose);
+		sprintf(message, "Sent to <%s:%hu> the message: %s", inet_ntoa(self->udp_server.addr.sin_addr), ntohs(self->udp_server.addr.sin_port), buffer);
+		print_verbose(message);
 		
 		memset(buffer, '\0', _SIZE_MAX_);
 		n = recvfrom(fd,buffer,_SIZE_MAX_,0,(struct sockaddr*)&self->udp_server,&addrlen);
 		if(n==-1)exit(1);
-		sprintf(message, "O servidor respondeu com um %s\n", buffer);
-		print_verbose(message, self->verbose);
+		sprintf(message, "Received from <%s:%hu> the message: %s\n", inet_ntoa(self->udp_server.addr.sin_addr), ntohs(self->udp_server.addr.sin_port), buffer);
+		print_verbose(message);
 
 		if (strcmp(buffer, "OK") == 0){
-			printf("Ring %d created\n", x);
+			sprintf(message, "Ring %d created\n", x);
+			print_verbose(message);
 			self->ring = x;
 			self->boot = 1;
 			close(fd);
@@ -206,12 +207,12 @@ int join(node * self, int x){
 		}
 	}else{
 		sprintf(message, "Ring %d already exists\n", x);
-		print_verbose(message, self->verbose);
+		print_verbose(message);
 		n = sscanf(buffer, "%s %d %d %s %d", command, &x, &j, ip, &tcp);
 		if(n != 5) return 1;
 		if(strcmp(command, "BRSP") == 0){
 			if(self->id.id == j){
-				printf("Already a node\n");
+				printf("Error: Already a node with identifier %d\n", self->id.id);
 				close(fd);
 				return 1;
 			}else{
@@ -229,11 +230,11 @@ int join(node * self, int x){
 int show(node * self){
 	print_interface(self, 2);
 	
-	if (self->verbose){
+	if (verbose){
 		if(self->boot) printf("BOOT NODE\n");
 		if(self->ring != -1){
 			printf("Ring: %d\n", self->ring);
-			printf("Node: %d     [%s:%hu]\n", self->id.id, inet_ntoa(self->id.addr.sin_addr), ntohs(self->id.addr.sin_port));
+			printf("Node:  %d     [%s:%hu]\n", self->id.id, inet_ntoa(self->id.addr.sin_addr), ntohs(self->id.addr.sin_port));
 		}else{
 			printf("Ring: NULL\n");
 		}
@@ -253,15 +254,16 @@ int show(node * self){
 			printf("Node: %d\n", self->id.id);
 		}else{
 			printf("Ring: NULL\n");
+			printf("Node: NULL\n");
 		}
 
 		if(self->predi.id != -1){
-			printf("Predi: %d     [%s:%hu]\n", self->predi.id, inet_ntoa(self->predi.addr.sin_addr), ntohs(self->predi.addr.sin_port));
+			printf("Predi: %d\n", self->predi.id);
 		}else{
 			printf("Predi: NULL\n");
 		}
 		if(self->succi.id != -1){
-			printf("Succi: %d     [%s:%hu]\n", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
+			printf("Succi: %d\n", self->succi.id);
 		}else{
 			printf("Succi: NULL");
 		}
@@ -277,7 +279,7 @@ int leave(node * self){
 	
 	if (self->ring == -1){
 		sprintf(message, "This node is not inserted in any ring\n");
-		print_verbose(message, self->verbose);
+		print_verbose(message);
 		return 1;
 	}
 
@@ -286,24 +288,25 @@ int leave(node * self){
 		
 	if(self->succi.id == -1){
 		// Sou único?
-		sprintf(message, "This node is not connected with any node\n");
-		print_verbose(message, self->verbose);
+		sprintf(message, "This node isn't connected to any other node\n");
+		print_verbose(message);
+		
 		memset(buffer, '\0', _SIZE_MAX_);
 		sprintf(buffer, "UNR %d\n", self->ring);
 		n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
 		if(n==-1)exit(1);
-		sprintf(message, "Sent to UDP %s\n", buffer);
-		print_verbose(message, self->verbose);	
+		sprintf(message, "Sent to <%s:%hu> the message: %s", inet_ntoa(self->udp_server.addr.sin_addr), ntohs(self->udp_server.addr.sin_port), buffer);
+		print_verbose(message);	
 		
 		memset(buffer, '\0', _SIZE_MAX_);
 		n = recvfrom(fd,buffer,_SIZE_MAX_,0,(struct sockaddr*)&self->udp_server,&addrlen);
 		if(n==-1)exit(1);
-		sprintf(message, "UDP Server replied %s\n", buffer);
-		print_verbose(message, self->verbose);
+		sprintf(message, "Received from <%s:%hu> the message: %s\n", inet_ntoa(self->udp_server.addr.sin_addr), ntohs(self->udp_server.addr.sin_port), buffer);
+		print_verbose(message);
 		
 		if(strcmp(buffer, "OK")==0){
 			sprintf(message, "Ring %d erased\n", self->ring);
-			print_verbose(message, self->verbose);
+			print_verbose(message);
 			self->ring = -1;
 			self->id.id = -1;
 			self->boot = 0;
@@ -311,31 +314,31 @@ int leave(node * self){
 			return 0;
 		}else return 1;
 	}else{ 
-		sprintf(message, "This node is connected with other node(s)\n");
-		print_verbose(message, self->verbose);
+		sprintf(message, "This node is connected to other node(s)\n");
+		print_verbose(message);
 		if(self->boot){				
 		// Sou BOOT?
 			sprintf(message, "BOOT\n");
-			print_verbose(message, self->verbose);
+			print_verbose(message);
+			
 			memset(buffer, '\0', _SIZE_MAX_);
 			sprintf(buffer, "REG %d %d %s %d\n", self->ring, self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
 			n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
 			if(n==-1)exit(1);
-			sprintf(message, "Sent to UDP %s\n", buffer);
-			print_verbose(message, self->verbose);
-			
+			sprintf(message, "Sent to <%s:%hu> the message: %s", inet_ntoa(self->udp_server.addr.sin_addr), ntohs(self->udp_server.addr.sin_port), buffer);
+			print_verbose(message);
 			
 			memset(buffer, '\0', _SIZE_MAX_);
 			addrlen=sizeof(self->udp_server);
 			n = recvfrom(fd,buffer,_SIZE_MAX_,0,(struct sockaddr*)&self->udp_server,&addrlen);
 			if(n==-1)exit(1);
-			sprintf(message, "UDP Server replied %s\n", buffer);
-			print_verbose(message, self->verbose);
+			sprintf(message, "Received from <%s:%hu> the message: %s\n", inet_ntoa(self->udp_server.addr.sin_addr), ntohs(self->udp_server.addr.sin_port), buffer);
+			print_verbose(message);
 			
 			n = write(self->fd.succi, "BOOT\n", _SIZE_MAX_);
 			if(n==-1)exit(1);
-			sprintf(message, "Sent to SUCCI: BOOT\n");
-			print_verbose(message, self->verbose);
+			sprintf(message, "Sent to <%s:%hu> the message: %s", inet_ntoa(self->udp_server.addr.sin_addr), ntohs(self->udp_server.addr.sin_port), buffer);
+			print_verbose(message);
 			self->boot = 0;
 		}
 				
@@ -343,31 +346,30 @@ int leave(node * self){
 		sprintf(buffer, "CON %d %s %d\n", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
 		n = write(self->fd.predi, buffer, _SIZE_MAX_);
 		if(n==-1)exit(1);
-		sprintf(message, "Sent to PREDI:%s\n", buffer);
-		print_verbose(message, self->verbose);
+		sprintf(message, "Sending to <predi>: %s\n", buffer);
+		print_verbose(message);
 		close(self->fd.succi);
 		close(self->fd.predi);
-		printf("Close Socket: %d (predi)\n", self->fd.predi);
-		printf("Close Socket: %d (succi)\n", self->fd.succi);
+		printf("Closing <predi> socket: %d\n", self->fd.predi);
+		printf("Closing <succi> socket: %d\n", self->fd.succi);
 		self->fd.predi = -1;
 		self->fd.succi = -1;
 		self->predi.id = -1;
 		self->succi.id = -1;
 		self->ring = -1;
 		self->id.id = -1;
-					
 	}
 	
-	sprintf(message,"This node is not inserted in any ring\n");
-	print_verbose(message, self->verbose);
+	sprintf(message,"This node has successfully left the ring\n");
+	print_verbose(message);
 	return 0;
 }
 
 void exit_app(node * self){
 	leave(self);
 	// Fazer frees à memória alocada
-	sprintf(message, "Exit.\n");
-	print_verbose(message, self->verbose);
+	sprintf(message, "Exited successfully.\n");
+	print_verbose(message);
 	exit(0);
 }
 
