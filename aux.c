@@ -14,7 +14,8 @@ void print_interface(int n){
 			printf("|exit                                                    |\n");
 			printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 		case 1:
-			printf("**********************************************************\n");
+			sprintf(message, "**********************************************************\n");
+			print_verbose(message, self->verbose);
 			break;
 		case 2:
 			printf("**********************************************************\n");
@@ -191,20 +192,20 @@ int join(node * self, int x){
 		print_verbose(message, self->verbose);
 
 		if (strcmp(buffer, "OK") == 0){
-			printf("Anel %d criado\n", x);
+			printf("Ring %d created\n", x);
 			self->ring = x;
 			self->boot = 1;
 			close(fd);
 			return 0;
 		}
 	}else{
-		sprintf(message, "Anel %d já existente\n", x);
+		sprintf(message, "Ring %d already exists\n", x);
 		print_verbose(message, self->verbose);
 		n = sscanf(buffer, "%s %d %d %s %d", command, &x, &j, ip, &tcp);
 		if(n != 5) return 1;
 		if(strcmp(command, "BRSP") == 0){
 			if(self->id.id == j){
-				sprintf(message, "Este nó já existe, escolhe outro\n");
+				sprintf(message, "Already a node\n");
 				print_verbose(message, self->verbose);
 				close(fd);
 				return 1;
@@ -352,7 +353,8 @@ int leave(node * self){
 void exit_app(node * self){
 	leave(self);
 	// Fazer frees à memória alocada
-	printf("A sair da aplicação.\n");
+	sprintf(message, "Exit.\n");
+	print_verbose(message, self->verbose);
 	exit(0);
 }
 
@@ -372,14 +374,17 @@ int switch_listen(char * command, int fd, node * self){
 			memset((void*)buffer, (int)'\0', _SIZE_MAX_);
 			sprintf(buffer, "CON %d %s %d\n", id, id_ip, id_tcp);
 			write(self->fd.predi, buffer, _SIZE_MAX_);
-			printf("Enviado para o nó %d %s %hu a mensagem %s", self->predi.id, inet_ntoa(self->predi.addr.sin_addr), ntohs(self->predi.addr.sin_port), buffer);
-			printf("Fechar o socket %d (predi)\n", self->fd.predi);
+			sprintf(message, "Sent to the node %d %s %hu the message %s", self->predi.id, inet_ntoa(self->predi.addr.sin_addr), ntohs(self->predi.addr.sin_port), buffer);
+			print_verbose(message, self->verbose);
+			sprintf(message, "Socket closed: %d (predi)\n", self->fd.predi);
+			print_verbose(message, self->verbose);
 			close(self->fd.predi);
 		}
 		self->predi.id = id;
 		self->predi.addr = getIP(id_ip, id_tcp);
 		self->fd.predi = fd;
-		printf("Aberto o socket %d (predi)\n", self->fd.predi);
+		sprintf(message,"Open socket: %d (predi)\n", self->fd.predi);
+		print_verbose(message, self->verbose);
 		
 		if(self->succi.id == -1){
 			self->succi.id = id;
@@ -393,8 +398,10 @@ int switch_listen(char * command, int fd, node * self){
 		if(self->id.id == id){
 			close(self->fd.succi);
 			close(self->fd.predi);
-			printf("Fechar o socket %d (predi)\n", self->fd.predi);
-			printf("Fechar o socket %d (succi)\n", self->fd.succi);
+			sprintf(message, "Socket closed: %d (predi)\n", self->fd.predi);
+			print_verbose(message, self->verbose);
+			sprintf(message, "Socket closed: %d (succi)\n", self->fd.succi);
+			print_verbose(message, self->verbose);
 			self->succi.id = -1;
 			self->predi.id = -1;
 			self->fd.predi = -1;
@@ -402,7 +409,8 @@ int switch_listen(char * command, int fd, node * self){
 		}else{
 			self->succi.id = id;
 			self->succi.addr = getIP(id_ip, id_tcp);
-			printf("Fechar o socket %d (succi)\n", self->fd.succi);
+			sprintf(message, "Socket closed: %d (succi)\n", self->fd.succi);
+			print_verbose(message, self->verbose);
 			close(self->fd.succi);
 			err = join_succi(self, 1);
 		}
@@ -411,7 +419,8 @@ int switch_listen(char * command, int fd, node * self){
 		n = sscanf(command, "%*s %d %d", &id, &k);
 		if (n != 2) return 1; //codigo de erro
 		if (dist(k, self->id.id) < dist(self->predi.id, self->id.id)){
-			printf("Sou eu o responsável! Vou responder!\n");
+			sprintf("Replying... I'm responsible");
+			print_verbose(message, self->verbose);
 			sprintf(buffer, "RSP %d %d %d %s %d\n", id, k, self->id.id, inet_ntoa(self->id.addr.sin_addr), ntohs(self->id.addr.sin_port));
 			n = write(self->fd.predi, buffer, _SIZE_MAX_);
 		}else{
@@ -423,7 +432,7 @@ int switch_listen(char * command, int fd, node * self){
 		if (n != 5) return 1; //codigo de erro
 		if(j == self->id.id){
 			if(fd == -1){
-				printf("O nó %d é responsavel por %d\n", id, k);
+				printf("The Node %d is responsible for %d\n", id, k);
 				err = 0;
 			}else{
 				sprintf(buffer, "SUCC %d %s %d\n", id, id_ip, id_tcp);
