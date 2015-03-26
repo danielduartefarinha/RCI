@@ -15,7 +15,7 @@ void print_interface(node * self, int n){
 			printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 		case 1:
 			sprintf(message, "*************************VERBOSE**************************\n");
-			print_verbose(message, self->verbose);
+			print_verbose(message);
 			break;
 		case 2:
 			printf( "**********************************************************\n");
@@ -49,13 +49,12 @@ struct sockaddr_in getIP(char * ip, int port){
 node Init_Node(char ** argv, int argc){
 	node new;
 	int i, n;
-	int verbose = 0;
 	char buffer[_SIZE_MAX_];
 	char bootip[_SIZE_MAX_] = "tejo.tecnico.ulisboa.pt";
 	int bootport = 58000;
 	int ringport = 8000; //voltar ao -1 mais tarde
-	//Trata argumentos
 	
+	//Trata argumentos
 	
 	for(i = 1; i < argc; i++){
 		if (strcmp(argv[i],"-t")==0){
@@ -91,13 +90,10 @@ node Init_Node(char ** argv, int argc){
 	
 	new.ring = -1;	// Inicialização do numero do anel a -1
 	new.boot = 0;
-	new.verbose = verbose;
 	
 	new.fd.keyboard = 0;
 	new.fd.predi = -1;
 	new.fd.succi = -1;
-	
-	
 	
 	return new;
 }
@@ -107,8 +103,8 @@ int dist(int k, int id){
 	else return (64 + id - k);
 }
 
-void print_verbose(char * message, int mode){
-	if (mode) printf("%s", message);
+void print_verbose(char * message){
+	if (verbose) printf("%s", message);
 }
 
 int search(node * self, int k){
@@ -116,14 +112,14 @@ int search(node * self, int k){
 	char buffer[_SIZE_MAX_];
 	
 	if (dist(k, self->id.id) < dist(self->predi.id, self->id.id)){
-		sprintf(message, "I'm responsible for %d\n", k);
-		print_verbose(message, self->verbose);
-		sprintf(message, "The Node %d is responsible for %d\n", self->id.id, k);
-		print_verbose(message, self->verbose);
+		sprintf(message, "This node is responsible for %d\n", k);
+		print_verbose(message);
 		return 1;
 	}else{
 		sprintf(buffer, "QRY %d %d\n", self->id.id, k);
 		n = write(self->fd.succi, buffer, _SIZE_MAX_);
+		sprintf(message, "Sending to <succi>: %s", buffer);
+		print_verbose(message);
 		return 0;
 	}
 }
@@ -137,14 +133,14 @@ int join_succi(node * self, int new){
 
 	addrlen = sizeof(self->succi.addr);
 	err = connect(self->fd.succi, (struct sockaddr *) &self->succi.addr, (socklen_t) addrlen);
-	sprintf(message, "Open Socket %d (succi)\n", self->fd.succi);
-	print_verbose(message, self->verbose);
+	sprintf(message, "Opening <succi> socket: %d\n", self->fd.succi);
+	print_verbose(message);
 	
 	if (err == -1){
-		printf("Impossible to connect to %s %hu\n", inet_ntoa(self->id.addr.sin_addr), ntohs(self->id.addr.sin_port));
+		printf("Impossible to connect to [%s %hu]\n", inet_ntoa(self->id.addr.sin_addr), ntohs(self->id.addr.sin_port));
 		close(self->fd.succi);
-		sprintf(message, "Close Socket %d (succi)\n", self->fd.succi);
-		print_verbose(message, self->verbose);
+		sprintf(message, "Closing <succi> socket: %d\n", self->fd.succi);
+		print_verbose(message);
 		self->succi.id = -1;
 		self->id.id = -1;
 		return 30;
@@ -159,8 +155,8 @@ int join_succi(node * self, int new){
 		
 	write(self->fd.succi, buffer, (size_t) _SIZE_MAX_);
 	
-	sprintf(message, "Enviado para o nó %d %s %hu a mensagem %s", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port), buffer);
-	print_verbose(message, self->verbose);
+	sprintf(message, "Sending to %d <succi> [%s %hu]: %s", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port), buffer);
+	print_verbose(message);
 	return(0);
 	
 }

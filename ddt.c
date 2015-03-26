@@ -54,7 +54,7 @@ int main(int argc, char ** argv){
 		print_interface(&self, 1);
 		n = select(maxfd+1, &rfds, (fd_set *) NULL, (fd_set *) NULL, (struct timeval *) NULL);
 		if (n <= 0){
-			printf("Problema com select\n");
+			printf("Select error\n");
 			exit(1);
 		}
 			
@@ -67,11 +67,12 @@ int main(int argc, char ** argv){
 		if (FD_ISSET(self.fd.listener, &rfds)){
 			fd_aux = accept(self.fd.listener, (struct sockaddr *)&addr, &aux_addrlen);
 			if(fd_aux == -1){
-				printf("Erro no accept\n");
+				printf("Accept error\n");
 				exit(0);
 			}
 			n = read(fd_aux, buffer, _SIZE_MAX_);
-			printf("Someone said: %s", buffer);
+			sprintf(message, "Received from <outside node>: %s", buffer);
+			print_verbose(message);
 			err = switch_listen(buffer, fd_aux, &self);
 			if (err == -10) state = busy;
 			memset((void *) buffer, (int) '\0', _SIZE_MAX_);
@@ -79,14 +80,16 @@ int main(int argc, char ** argv){
 		
 		if (FD_ISSET(self.fd.predi, &rfds) && (self.fd.predi != -1)){
 			n = read(self.fd.predi, buffer, _SIZE_MAX_);
-			printf("Predi sent: %s", buffer);
+			sprintf(message, "Received for <predi>: %s", buffer);
+			print_verbose(message);
 			err = switch_listen(buffer, -1, &self);
 			memset((void *) buffer, (int) '\0', _SIZE_MAX_); 
 		}
 		
 		if (FD_ISSET(self.fd.succi, &rfds) && (self.fd.succi != -1)){
 			n = read(self.fd.succi, buffer, _SIZE_MAX_);
-			printf("Succi sent: %s", buffer);
+			sprintf(message, "Received from <succi>: %s", buffer);
+			print_verbose(message);
 			switch (state){
 				case idle:
 					err = switch_listen(buffer, -1, &self);

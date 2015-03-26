@@ -28,6 +28,7 @@
 #define _SIZE_MAX_ 128
 
 static int errno;
+static int verbose;
 static char message[_SIZE_MAX_];
 
 typedef struct node_data{
@@ -49,7 +50,6 @@ typedef struct node{
 	struct sockaddr_in udp_server;
 	int boot;
 	int ring;
-	int verbose;
 	sockets fd;
 } node;
 
@@ -57,7 +57,7 @@ void print_interface(node * self, int n);
 struct sockaddr_in getIP(char * ip, int port);
 node Init_Node(char ** argv, int argc);
 int dist(int k, int id);
-void print_verbose(char * message, int mode);
+void print_verbose(char * message);
 int search(node * self, int k);
 int join_succi(node * self, int service);
 int join(node * self, int x);
