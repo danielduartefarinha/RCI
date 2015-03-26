@@ -6,6 +6,7 @@
  * 		  1			|	Search retorna o próprio nó (usado após ID i)
  * 		-10			|	Usado para definir o estado <busy> na main
  * 		 12			|	Usado para sair do estado <busy> na main
+ *       20         |   Usado para saber erro join
  * -------------------------------------------------------------------
 */
 

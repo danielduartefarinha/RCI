@@ -77,23 +77,15 @@ int main(int argc, char ** argv){
 			memset((void *) buffer, (int) '\0', _SIZE_MAX_);
 		}			
 		
-		if (FD_ISSET(self.fd.predi, &rfds)){
+		if (FD_ISSET(self.fd.predi, &rfds) && (self.fd.predi != -1)){
 			n = read(self.fd.predi, buffer, _SIZE_MAX_);
-			if (n <= 0){
-				printf("O anel foi terminado\n");
-				exit(1);
-			}
 			printf("Predi sent: %s", buffer);
 			err = switch_listen(buffer, -1, &self);
 			memset((void *) buffer, (int) '\0', _SIZE_MAX_); 
 		}
 		
-		if (FD_ISSET(self.fd.succi, &rfds)){
+		if (FD_ISSET(self.fd.succi, &rfds) && (self.fd.succi != -1)){
 			n = read(self.fd.succi, buffer, _SIZE_MAX_);
-			if (n <= 0){
-				printf("O anel foi terminado\n");
-				exit(1);
-			}
 			printf("Succi sent: %s", buffer);
 			switch (state){
 				case idle:

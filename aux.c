@@ -233,34 +233,32 @@ int leave(node * self){
 	fd=socket(AF_INET, SOCK_DGRAM,0);
 	if(fd==-1)exit(1);
 		
-
-	if(self->boot){				
+	if(self->succi.id == -1){
+		// Sou único?
+		printf("Estou sozinho :'(\n");
+		memset(buffer, '\0', _SIZE_MAX_);
+		sprintf(buffer, "UNR %d\n", self->ring);
+		n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
+		if(n==-1)exit(1);
+		printf("Enviei ao servidor UDP a mensagem %s", buffer);	
+		
+		memset(buffer, '\0', _SIZE_MAX_);
+		n = recvfrom(fd,buffer,_SIZE_MAX_,0,(struct sockaddr*)&self->udp_server,&addrlen);
+		if(n==-1)exit(1);
+		printf("O servidor respondeu com um %s\n", buffer);
+		
+		if(strcmp(buffer, "OK")==0){
+			printf("Anel %d apagado\n", self->ring);
+			self->ring = -1;
+			self->id.id = -1;
+			self->boot = 0;
+			close(fd);
+			return 0;
+		}else return 1;
+	}else{ 
+		printf("Não estou sozinho =D\n");
+		if(self->boot){				
 		// Sou BOOT?
-
-		if(self->succi.id == -1){
-			printf("Estou sozinho :'(\n");
-			memset(buffer, '\0', _SIZE_MAX_);
-			sprintf(buffer, "UNR %d\n", self->ring);
-			n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
-			if(n==-1)exit(1);
-			printf("Enviei ao servidor UDP a mensagem %s", buffer);
-		
-			memset(buffer, '\0', _SIZE_MAX_);
-			n = recvfrom(fd,buffer,_SIZE_MAX_,0,(struct sockaddr*)&self->udp_server,&addrlen);
-			if(n==-1)exit(1);
-			printf("O servidor respondeu com um %s\n", buffer);
-		
-			if(strcmp(buffer, "OK")==0){
-				printf("Anel %d apagado\n", self->ring);
-				self->ring = -1;
-				self->id.id = -1;
-				self->boot = 0;
-				close(fd);
-				return 0;
-			}
-		}else{
-			printf("Não estou sozinho =D\nMas vou ficar :'(\n");	
-			
 			memset(buffer, '\0', _SIZE_MAX_);
 			sprintf(buffer, "REG %d %d %s %d\n", self->ring, self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
 			n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
@@ -276,30 +274,23 @@ int leave(node * self){
 			n = write(self->fd.succi, "BOOT\n", _SIZE_MAX_);
 			if(n==-1)exit(1);
 			printf("Enviei ao succi a mensagem BOOT\n");
-			
-			memset(buffer, '\0', _SIZE_MAX_);
-			sprintf(buffer, "CON %d %s %d\n", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
-			n = write(self->fd.predi, buffer, _SIZE_MAX_);
-			if(n==-1)exit(1);
-			printf("Enviei ao predi a mensagem %s", buffer);
-
-			close(self->fd.succi);
-			close(self->fd.predi);
-			self->fd.predi = -1;
-			self->fd.succi = -1;
-			self->predi.id = -1;
-			self->succi.id = -1;
-			self->ring = -1;
-			self->id.id = -1;
-			self->boot = 0;		
+			self->boot = 0;
 		}
-	}else{
-			
-			memset(buffer, '\0', _SIZE_MAX_);
-			sprintf(buffer, "CON %d %s %d\n", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
-			n = write(self->fd.predi, buffer, _SIZE_MAX_);
-			if(n==-1)exit(1);
-			printf("Enviei ao predi a mensagem %s", buffer);
+				
+		memset(buffer, '\0', _SIZE_MAX_);
+		sprintf(buffer, "CON %d %s %d\n", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
+		n = write(self->fd.predi, buffer, _SIZE_MAX_);
+		if(n==-1)exit(1);
+		printf("Enviei ao predi a mensagem %s", buffer);
+		close(self->fd.succi);
+		close(self->fd.predi);
+		self->fd.predi = -1;
+		self->fd.succi = -1;
+		self->predi.id = -1;
+		self->succi.id = -1;
+		self->ring = -1;
+		self->id.id = -1;
+					
 	}
 	
 	printf("Estou pronto para juntar a outro anel =D\n");
@@ -347,15 +338,13 @@ int switch_listen(char * command, int fd, node * self){
 	if(strcmp(buffer, "CON") == 0){
 		n = sscanf(command, "%*s %d %s %d", &id, id_ip, &id_tcp);
 		if (n != 3) return 1; //codigo de erro
-		printf("estou antes do if %d == %d?\n", self->id.id, id);
-		if(self->predi.id == id){
-			self->succi.id == -1;
-			self->predi.id == -1;
+		if(self->id.id == id){
 			close(self->fd.succi);
 			close(self->fd.predi);
+			self->succi.id = -1;
+			self->predi.id = -1;
 			self->fd.predi = -1;
 			self->fd.succi = -1;
-			printf("estou depois do if %d == %d\n", self->id.id, id);
 		}else{
 			self->succi.id = id;
 			self->succi.addr = getIP(id_ip, id_tcp);
@@ -440,6 +429,11 @@ int switch_cmd(char * command, node * self){
 	int n, err, x, succi, succiTCP;
 	
 	n = sscanf(command, "%s %d %d %d %s %d", buffer, &x, &self->id.id, &succi, succiIP, &succiTCP);
+	if(self->id.id > 64){
+		printf("O identificador do nó tem de ser inferior a 64");
+		self->id.id = -1;
+		return 20;
+	}
 	switch(n){
 		case(1):
 			if(strcmp(buffer, "leave") == 0){
