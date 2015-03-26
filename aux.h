@@ -27,6 +27,7 @@
 #define _SIZE_MAX_ 128
 
 static int errno;
+static char message[_SIZE_MAX_];
 
 typedef struct node_data{
 	int  id;	

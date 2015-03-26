@@ -113,7 +113,6 @@ void print_verbose(char * message, int mode){
 int search(node * self, int k){
 	int n;
 	char buffer[_SIZE_MAX_];
-	char message[_SIZE_MAX_];
 	
 	if (dist(k, self->id.id) < dist(self->predi.id, self->id.id)){
 		sprintf(message, "Sou eu o responsável! Vou responder!\n");
@@ -130,15 +129,15 @@ int search(node * self, int k){
 
 int join_succi(node * self, int new){
 	int err, addrlen;
-	char buffer[_SIZE_MAX_];
-	
+	char buffer[_SIZE_MAX_];	
 	
 	self->fd.succi = socket(AF_INET, SOCK_STREAM, 0);
 	if(self->fd.succi == -1) exit(1);
 
 	addrlen = sizeof(self->succi.addr);
 	err = connect(self->fd.succi, (struct sockaddr *) &self->succi.addr, (socklen_t) addrlen);
-	printf("Aberto o socket %d (succi)\n", self->fd.succi);
+	sprintf(message, "Aberto o socket %d (succi)\n", self->fd.succi);
+	print_verbose(message, self->verbose);
 	
 	if (err == -1) printf("error: %s\n", strerror(errno));
 	
@@ -151,7 +150,8 @@ int join_succi(node * self, int new){
 		
 	write(self->fd.succi, buffer, (size_t) _SIZE_MAX_);
 	
-	printf("Enviado para o nó %d %s %hu a mensagem %s", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port), buffer);
+	sprintf(message, "Enviado para o nó %d %s %hu a mensagem %s", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port), buffer);
+	char message[_SIZE_MAX_];
 	return(0);
 	
 }
@@ -159,9 +159,7 @@ int join_succi(node * self, int new){
 int join(node * self, int x){
 	int fd, addrlen, n, j, tcp, err;
 	char command[_SIZE_MAX_], ip[_SIZE_MAX_];
-	char buffer[_SIZE_MAX_];
-	char message[_SIZE_MAX_];
-	
+	char buffer[_SIZE_MAX_];	
 	
 	fd=socket(AF_INET, SOCK_DGRAM,0);
 	if(fd==-1)exit(1);
@@ -183,12 +181,15 @@ int join(node * self, int x){
 		sprintf(buffer, "REG %d %d %s %hu\n", x, self->id.id, inet_ntoa(self->id.addr.sin_addr),ntohs(self->id.addr.sin_port));
 		n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
 		if(n==-1)exit(1);
-		printf("Enviei ao servidor UDP a mensagem %s", buffer);
+		sprintf(message, "Enviei ao servidor UDP a mensagem %s", buffer);
+		print_verbose(message, self->verbose);
 		
 		memset(buffer, '\0', _SIZE_MAX_);
 		n = recvfrom(fd,buffer,_SIZE_MAX_,0,(struct sockaddr*)&self->udp_server,&addrlen);
 		if(n==-1)exit(1);
-		printf("O servidor respondeu com um %s\n", buffer);
+		sprintf(message, "O servidor respondeu com um %s\n", buffer);
+		print_verbose(message, self->verbose);
+
 		if (strcmp(buffer, "OK") == 0){
 			printf("Anel %d criado\n", x);
 			self->ring = x;
@@ -197,12 +198,14 @@ int join(node * self, int x){
 			return 0;
 		}
 	}else{
-		printf("Anel %d já existente\n", x);
+		sprintf(message, "Anel %d já existente\n", x);
+		print_verbose(message, self->verbose);
 		n = sscanf(buffer, "%s %d %d %s %d", command, &x, &j, ip, &tcp);
 		if(n != 5) return 1;
 		if(strcmp(command, "BRSP") == 0){
 			if(self->id.id == j){
-				printf("Este nó já existe, escolhe outro\n");
+				sprintf(message, "Este nó já existe, escolhe outro\n");
+				print_verbose(message, self->verbose);
 				close(fd);
 				return 1;
 			}else{
@@ -219,22 +222,36 @@ int join(node * self, int x){
 
 int show(node * self){
 	print_interface(2);
-	printf("Olá sou o %s:%hu\n", inet_ntoa(self->id.addr.sin_addr), ntohs(self->id.addr.sin_port));
-	if (self->boot) printf("Sou o BOOT :P\n");
-	if(self->ring != -1){
-		printf("Estou inserido no anel: %d e sou o nó: %d\n", self->ring, self->id.id);
+	
+	if (self->verbose){
+		if(self->boot) printf("BOOT NODE\n");
+		if(self->ring != -1){
+			printf("Ring: %d\n", self->ring);
+			printf("Node: %d     [%s:%hu]\n", self->id.id, inet_ntoa(self->id.addr.sin_addr), ntohs(self->id.addr.sin_port));
+		}else{
+			printf("Ring: NULL\n");
+		}
+		if(self->predi.id != -1){
+			printf("Predi: %d     [%s:%hu]\n", self->predi.id, inet_ntoa(self->predi.addr.sin_addr), ntohs(self->predi.addr.sin_port));
+		}else{
+			printf("Predi: NULL\n");
+		}
+		if(self->succi.id != -1){
+			printf("Predi: %d     [%s:%hu]\n", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
+		}else{
+			printf("SUCCI: NULL\n");
+		}
 	}else{
-		printf("Não estou inserido em nenhum anel :(\n");
-	}
-	if(self->predi.id != -1){
-		printf("O meu predi é %s:%hu\n", inet_ntoa(self->predi.addr.sin_addr), ntohs(self->predi.addr.sin_port));
-	}else{
-		printf("Não tenho predi :(\n");
-	}
-	if(self->succi.id != -1){
-		printf("O meu succi é %s:%hu\n", inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
-	}else{
-		printf("Não tenho succi :(\n");
+		if(self->ring != -1){
+			printf("Ring: %d\n", self->ring);
+			printf("Node: %d\n", self->id.id);
+		}
+		if(self->predi.id != -1){
+			printf("Predi: %d     [%s:%hu]\n", self->predi.id, inet_ntoa(self->predi.addr.sin_addr), ntohs(self->predi.addr.sin_port));
+		}
+		if(self->succi.id != -1){
+			printf("Predi: %d     [%s:%hu]\n", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
+		}
 	}
 	return 0;
 }
@@ -246,7 +263,8 @@ int leave(node * self){
 	// Caso o nó não esteja em nenhum anel 
 	
 	if (self->ring == -1){
-		printf("O nó não está inserido em nenhum anel\n");
+		sprintf(message, "Thist node is not inserted in any ring\n");
+		print_verbose(message, self->verbose);
 		return 1;
 	}
 
@@ -255,20 +273,24 @@ int leave(node * self){
 		
 	if(self->succi.id == -1){
 		// Sou único?
-		printf("Estou sozinho :'(\n");
+		sprintf(message, "This node is not connected with any node\n");
+		print_verbose(message, self->verbose);
 		memset(buffer, '\0', _SIZE_MAX_);
 		sprintf(buffer, "UNR %d\n", self->ring);
 		n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
 		if(n==-1)exit(1);
-		printf("Enviei ao servidor UDP a mensagem %s", buffer);	
+		sprintf(message, "Sent to UDP %s\n", buffer);
+		print_verbose(message, self->verbose);	
 		
 		memset(buffer, '\0', _SIZE_MAX_);
 		n = recvfrom(fd,buffer,_SIZE_MAX_,0,(struct sockaddr*)&self->udp_server,&addrlen);
 		if(n==-1)exit(1);
-		printf("O servidor respondeu com um %s\n", buffer);
+		sprintf(message, "UDP Server replied %s\n", buffer);
+		print_verbose(message, self->verbose);
 		
 		if(strcmp(buffer, "OK")==0){
-			printf("Anel %d apagado\n", self->ring);
+			sprintf(message, "Ring %d erased\n", self->ring);
+			print_verbose(message, self->verbose);
 			self->ring = -1;
 			self->id.id = -1;
 			self->boot = 0;
@@ -276,25 +298,31 @@ int leave(node * self){
 			return 0;
 		}else return 1;
 	}else{ 
-		printf("Não estou sozinho =D\n");
+		sprintf(message, "This node is connected with other node(s)\n");
+		print_verbose(message, self->verbose);
 		if(self->boot){				
 		// Sou BOOT?
-			printf("Sou BOOT\n");
+			sprintf(message, "BOOT\n");
+			print_verbose(message, self->verbose);
 			memset(buffer, '\0', _SIZE_MAX_);
 			sprintf(buffer, "REG %d %d %s %d\n", self->ring, self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
 			n=sendto(fd, buffer,50,0,(struct sockaddr*)&self->udp_server, sizeof(self->udp_server));
 			if(n==-1)exit(1);
-			printf("Enviei ao servidor UDP a mensagem %s", buffer);
+			sprintf(message, "Sent to UDP %s\n", buffer);
+			print_verbose(message, self->verbose);
+			
 			
 			memset(buffer, '\0', _SIZE_MAX_);
 			addrlen=sizeof(self->udp_server);
 			n = recvfrom(fd,buffer,_SIZE_MAX_,0,(struct sockaddr*)&self->udp_server,&addrlen);
 			if(n==-1)exit(1);
-			printf("O servidor respondeu com um %s\n", buffer);
+			sprintf(message, "UDP Server replied %s\n", buffer);
+			print_verbose(message, self->verbose);
 			
 			n = write(self->fd.succi, "BOOT\n", _SIZE_MAX_);
 			if(n==-1)exit(1);
-			printf("Enviei ao succi a mensagem BOOT\n");
+			sprintf(message, "Sent to SUCCI: BOOT\n");
+			print_verbose(message, self->verbose);
 			self->boot = 0;
 		}
 				
@@ -316,7 +344,8 @@ int leave(node * self){
 					
 	}
 	
-	printf("Estou pronto para juntar a outro anel =D\n");
+	sprintf(message,"This node is not inserted in any ring\n");
+	print_verbose(message, self->verbose);
 	return 0;
 }
 
@@ -459,7 +488,7 @@ int switch_cmd(char * command, node * self){
 	int n, err, x, succi, succiTCP;
 	
 	n = sscanf(command, "%s %d %d %d %s %d", buffer, &x, &self->id.id, &succi, succiIP, &succiTCP);
-	if(self->id.id > 64){
+	if(self->id.id >= 64){
 		printf("O identificador do nó tem de ser inferior a 64\n");
 		self->id.id = -1;
 		return 20;
