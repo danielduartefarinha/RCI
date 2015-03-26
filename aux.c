@@ -14,12 +14,11 @@ void print_interface(node * self, int n){
 			printf("|exit                                                    |\n");
 			printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 		case 1:
-			sprintf(message, "**********************************************************\n");
+			sprintf(message, "*************************VERBOSE**************************\n");
 			print_verbose(message, self->verbose);
 			break;
 		case 2:
-			sprintf(message, "**********************************************************\n");
-			print_verbose(message, !self->verbose);
+			printf( "**********************************************************\n");
 			break;
 		default:
 			break;
@@ -117,9 +116,9 @@ int search(node * self, int k){
 	char buffer[_SIZE_MAX_];
 	
 	if (dist(k, self->id.id) < dist(self->predi.id, self->id.id)){
-		sprintf(message, "Sou eu o responsável! Vou responder!\n");
+		sprintf(message, "I'm responsible for %d\n", k);
 		print_verbose(message, self->verbose);
-		sprintf(message, "O nó %d (eu) é responsavel por %d\n", self->id.id, k);
+		sprintf(message, "The Node %d is responsible for %d\n", self->id.id, k);
 		print_verbose(message, self->verbose);
 		return 1;
 	}else{
@@ -138,10 +137,18 @@ int join_succi(node * self, int new){
 
 	addrlen = sizeof(self->succi.addr);
 	err = connect(self->fd.succi, (struct sockaddr *) &self->succi.addr, (socklen_t) addrlen);
-	sprintf(message, "Aberto o socket %d (succi)\n", self->fd.succi);
+	sprintf(message, "Open Socket %d (succi)\n", self->fd.succi);
 	print_verbose(message, self->verbose);
 	
-	if (err == -1) printf("error: %s\n", strerror(errno));
+	if (err == -1){
+		printf("Impossible to connect to %s %hu\n", inet_ntoa(self->id.addr.sin_addr), ntohs(self->id.addr.sin_port));
+		close(self->fd.succi);
+		sprintf(message, "Close Socket %d (succi)\n", self->fd.succi);
+		print_verbose(message, self->verbose);
+		self->succi.id = -1;
+		self->id.id = -1;
+		return 30;
+	}
 	
 	memset((void *) buffer, (int) '\0', _SIZE_MAX_);
 	
@@ -153,7 +160,7 @@ int join_succi(node * self, int new){
 	write(self->fd.succi, buffer, (size_t) _SIZE_MAX_);
 	
 	sprintf(message, "Enviado para o nó %d %s %hu a mensagem %s", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port), buffer);
-	char message[_SIZE_MAX_];
+	print_verbose(message, self->verbose);
 	return(0);
 	
 }
@@ -206,8 +213,7 @@ int join(node * self, int x){
 		if(n != 5) return 1;
 		if(strcmp(command, "BRSP") == 0){
 			if(self->id.id == j){
-				sprintf(message, "Already a node\n");
-				print_verbose(message, self->verbose);
+				printf("Already a node\n");
 				close(fd);
 				return 1;
 			}else{
@@ -219,7 +225,7 @@ int join(node * self, int x){
 		}
 	}
 	close(fd);
-	return 1;
+	return err;
 }
 
 int show(node * self){
@@ -272,7 +278,7 @@ int leave(node * self){
 	// Caso o nó não esteja em nenhum anel 
 	
 	if (self->ring == -1){
-		sprintf(message, "Thist node is not inserted in any ring\n");
+		sprintf(message, "This node is not inserted in any ring\n");
 		print_verbose(message, self->verbose);
 		return 1;
 	}
@@ -339,11 +345,11 @@ int leave(node * self){
 		sprintf(buffer, "CON %d %s %d\n", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
 		n = write(self->fd.predi, buffer, _SIZE_MAX_);
 		if(n==-1)exit(1);
-		printf("Enviei ao predi a mensagem %s", buffer);
+		printf("Sent to PREDI:%s", buffer);
 		close(self->fd.succi);
 		close(self->fd.predi);
-		printf("Fechar o socket %d (predi)\n", self->fd.predi);
-		printf("Fechar o socket %d (succi)\n", self->fd.succi);
+		printf("Close Socket: %d (predi)\n", self->fd.predi);
+		printf("Close Socket: %d (succi)\n", self->fd.succi);
 		self->fd.predi = -1;
 		self->fd.succi = -1;
 		self->predi.id = -1;
@@ -382,9 +388,9 @@ int switch_listen(char * command, int fd, node * self){
 			memset((void*)buffer, (int)'\0', _SIZE_MAX_);
 			sprintf(buffer, "CON %d %s %d\n", id, id_ip, id_tcp);
 			write(self->fd.predi, buffer, _SIZE_MAX_);
-			sprintf(message, "Sent to the node %d %s %hu the message %s", self->predi.id, inet_ntoa(self->predi.addr.sin_addr), ntohs(self->predi.addr.sin_port), buffer);
+			sprintf(message, "Sent to node %d %s %hu the message %s", self->predi.id, inet_ntoa(self->predi.addr.sin_addr), ntohs(self->predi.addr.sin_port), buffer);
 			print_verbose(message, self->verbose);
-			sprintf(message, "Socket closed: %d (predi)\n", self->fd.predi);
+			sprintf(message, "Close Socket: %d (predi)\n", self->fd.predi);
 			print_verbose(message, self->verbose);
 			close(self->fd.predi);
 		}
@@ -406,9 +412,9 @@ int switch_listen(char * command, int fd, node * self){
 		if(self->id.id == id){
 			close(self->fd.succi);
 			close(self->fd.predi);
-			sprintf(message, "Socket closed: %d (predi)\n", self->fd.predi);
+			sprintf(message, "Close Socket: %d (predi)\n", self->fd.predi);
 			print_verbose(message, self->verbose);
-			sprintf(message, "Socket closed: %d (succi)\n", self->fd.succi);
+			sprintf(message, "Close Socket: %d (succi)\n", self->fd.succi);
 			print_verbose(message, self->verbose);
 			self->succi.id = -1;
 			self->predi.id = -1;
@@ -417,7 +423,7 @@ int switch_listen(char * command, int fd, node * self){
 		}else{
 			self->succi.id = id;
 			self->succi.addr = getIP(id_ip, id_tcp);
-			sprintf(message, "Socket closed: %d (succi)\n", self->fd.succi);
+			sprintf(message, "Close Socket: %d (succi)\n", self->fd.succi);
 			print_verbose(message, self->verbose);
 			close(self->fd.succi);
 			err = join_succi(self, 1);
@@ -427,7 +433,7 @@ int switch_listen(char * command, int fd, node * self){
 		n = sscanf(command, "%*s %d %d", &id, &k);
 		if (n != 2) return 1; //codigo de erro
 		if (dist(k, self->id.id) < dist(self->predi.id, self->id.id)){
-			sprintf(message, "Replying... I'm responsible");
+			sprintf(message, "I'm responsible for %d", k);
 			print_verbose(message, self->verbose);
 			sprintf(buffer, "RSP %d %d %d %s %d\n", id, k, self->id.id, inet_ntoa(self->id.addr.sin_addr), ntohs(self->id.addr.sin_port));
 			n = write(self->fd.predi, buffer, _SIZE_MAX_);
@@ -446,8 +452,9 @@ int switch_listen(char * command, int fd, node * self){
 				sprintf(buffer, "SUCC %d %s %d\n", id, id_ip, id_tcp);
 				n = write(fd, buffer, _SIZE_MAX_);
 				err = 12;
-				printf("Enviado para o nó externo a mensagem %s", buffer);
-				printf("Enviado para o nó externo a mensagem %s", buffer);
+				sprintf(message, "Sent: SUCC %s", buffer);
+				print_verbose(message, self->verbose);
+
 			}
 		}else{
 			n = write(self->fd.predi, command, _SIZE_MAX_);
@@ -474,17 +481,17 @@ int switch_listen(char * command, int fd, node * self){
 		n = sscanf(command, "%*s %d %s %d", &id, id_ip, &id_tcp);
 		if (n != 3) return 1; //codigo de erro
 		if(self->id.id == id){
-			printf("Nó ja existente, escolhe outro\n");
+			printf("Already a node\n");
 					
 			self->succi.id = -1;
 			self->ring = -1;
 			close(self->fd.succi);
-			printf("Fechar o socket %d (succi)\n", self->fd.succi);
+			printf("Close Socket: %d (succi)\n", self->fd.succi);
 			self->fd.succi = -1;
 		}else{
 			self->succi.id = id;
 			self->succi.addr = getIP(id_ip, id_tcp);
-			printf("Fechar o socket %d (succi)\n", self->fd.succi);
+			printf("Close Socket: %d (succi)\n", self->fd.succi);
 			close(self->fd.succi);
 			err = join_succi(self, 1);
 		}
@@ -492,7 +499,7 @@ int switch_listen(char * command, int fd, node * self){
 	if(strcmp(buffer, "BOOT") == 0){
 		self->boot = 1;
 		close(self->fd.predi);
-		printf("Fechar o socket %d (predi)\n", self->fd.predi);
+		printf("Close Socket: %d (predi)\n", self->fd.predi);
 		self->fd.predi = -1;
 		self->predi.id = -1;
 		err = 0;
@@ -507,7 +514,7 @@ int switch_cmd(char * command, node * self){
 	
 	n = sscanf(command, "%s %d %d %d %s %d", buffer, &x, &self->id.id, &succi, succiIP, &succiTCP);
 	if(self->id.id >= 64){
-		printf("O identificador do nó tem de ser inferior a 64\n");
+		printf("Error: Node > 64\n");
 		self->id.id = -1;
 		return 20;
 	}
@@ -522,7 +529,7 @@ int switch_cmd(char * command, node * self){
 					if(strcmp(buffer, "exit") == 0){
 						exit_app(self);
 					}else{
-						printf("%s não é um comando válido, ou faltam argumentos\n", buffer);
+						printf("No command found '%s' or missed arguments\n", buffer);
 					}
 				}
 			}
@@ -531,7 +538,7 @@ int switch_cmd(char * command, node * self){
 			if(strcmp(buffer, "search") == 0){
 				err = search(self, x);
 			}else{
-				printf("%s não é um comando válido, ou faltam argumentos\n", buffer);
+				printf("No command found '%s' or missed arguments\n", buffer);
 			}
 			break;
 		case(3):
@@ -539,11 +546,11 @@ int switch_cmd(char * command, node * self){
 				if(self->ring == -1){
 					err = join(self, x);
 				}else{
-					printf("O nó ja está inserido no anel %d, não pode ser adicionado a outro\n", self->ring);
+					printf("Node already in the ring %d\n", self->ring);
 					err = 3;
 				}
 			}else{
-				printf("%s não é um comando válido, ou faltam argumentos\n", buffer);
+				printf("No command found '%s' or missed arguments\n", buffer);
 			}
 			break;
 		case(6):
@@ -554,15 +561,15 @@ int switch_cmd(char * command, node * self){
 					self->ring = x;
 					err = join_succi(self, 1);
 				}else{
-					printf("O nó ja está inserido no anel %d, não pode ser adicionado a outro\n", self->ring);
+					printf("Node already in the ring %d\n", self->ring);
 					err = 3;
 				}
 			}else{
-				printf("%s não é um comando válido, ou faltam argumentos\n", buffer);
+				printf("No command found '%s' or missed arguments\n", buffer);
 			}
 			break;
 		default:
-			printf("%s não é um comando válido, ou faltam argumentos\n", buffer);
+			printf("No command found '%s' or missed arguments\n", buffer);
 			break;
 	}
 	return err;
