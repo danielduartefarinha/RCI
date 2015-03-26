@@ -49,7 +49,7 @@ node Init_Node(char ** argv, int argc){
 	node new;
 	int i, n;
 	char buffer[_SIZE_MAX_];
-	char bootip[_SIZE_MAX_] = "127.0.0.1";
+	char bootip[_SIZE_MAX_] = "tejo.tecnico.ulisboa.pt";
 	int bootport = 58000;
 	int ringport = 8000; //voltar ao -1 mais tarde
 	//Trata argumentos
