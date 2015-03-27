@@ -1,0 +1,29 @@
+< Titulo Fixe/Fofinho/Agressivo>
+
+Relativamente ao log anterior: // caso haja algum tipo de aviso
+    
+    --> Leave do ROOT a funcionar [FIXED]
+    --> Leave sem ser ROOT é mesmo falta de código [Fiz printf a avisar]
+    --> Join a um anel, com (succi != boot), mas com (id == succi) dá
+porcaria, não consigui corrigir agora.
+
+Relativamente à lista de tarefas : // repetir alterações feitas, face ao necessário fazer 
+    
+Falta:
+    
+    - Leave [UPDATE]
+		-- Lembraram-me de explorar o caso em que só existem dois nós
+no anel, ou seja (succi.id == predi.id), para (id == boot && id != boot);
+    - Exit (lol)
+    - Codificação de erros [UPDATE]
+		-- Criei uma secção (em comentário), no ficheiro aux.h com os 
+valores de <err> em uso, actualmente, e onde. O que não aparece, pode
+pode estar definido, mas não é usado;
+    - Comentários [UPDATE]
+		-- Comecei a comentar a função leave, porque me estava a perder;
+    - Duplos (+1 succi e +1 predi?)
+    - Colocar código mais legivel [UPDATE]
+		-- Ler secção de comentários;
+    - Fazer uma puta dum fluxograma (ou equivalente)
+
+Mamba out.

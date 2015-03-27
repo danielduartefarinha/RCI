@@ -1,6 +1,6 @@
 #include "aux.h"
 
-void print_interface(node * self, int n){
+void print_interface(int n){
 	switch (n){
 		case 0:
 			printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
@@ -53,7 +53,7 @@ node Init_Node(char ** argv, int argc){
 	char buffer[_SIZE_MAX_];
 	char bootip[_SIZE_MAX_] = "tejo.tecnico.ulisboa.pt";
 	int bootport = 58000;
-	int ringport = 8000; //voltar ao -1 mais tarde
+	int ringport = -1; 
 	
 	//Trata argumentos
 	
@@ -77,9 +77,24 @@ node Init_Node(char ** argv, int argc){
 		}
 		if (strcmp(argv[i], "-v") == 0){
 			verbose = 1;
+		}
+		if(strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0){
+			printf("\nFunction is called with:\n");
+			printf("./ddt [-i BootIP] [-p BootPort] [-t RingPort] [-v]\n\n");
+			printf("By default:\n");
+			printf("BootIP = <tejo.tecnico.ulisboa.pt> and BootPort = <58000>\n");
+			printf("RingPort must be set\n\n");
+			printf("Opcional: -v enables Verbose\n\n");
+			exit(0);
 		}		
 	}
 
+	if(ringport == -1){
+		printf("RingPort not set. Aborting program run.\n");
+		printf("Program must be called with ./ddt [-t RingPort]\n");
+		printf("\nFor more informations run: ./ddt [-h | --help]\n\n");
+		exit(0);
+	}
 	// Inicialização
 	
 	if(gethostname(buffer, _SIZE_MAX_) == -1) printf("error: %s\n", strerror(errno));
@@ -213,7 +228,7 @@ int join(node * self, int x){
 		if(n != 5) return 1;
 		if(strcmp(command, "BRSP") == 0){
 			if(self->id.id == j){
-				printf("Error: Already a node with identifier %d\n", self->id.id);
+				printf("Error: There already exists a node with same identifier\n");
 				close(fd);
 				return 1;
 			}else{
@@ -229,7 +244,7 @@ int join(node * self, int x){
 }
 
 int show(node * self){
-	print_interface(self, 2);
+	print_interface(2);
 	
 	if (verbose){
 		if(self->boot) printf("BOOT NODE\n");
@@ -270,7 +285,7 @@ int show(node * self){
 		}
 	}
 	
-	print_interface(self, 2);
+	print_interface(2);
 	return 0;
 }
 
@@ -303,7 +318,6 @@ int leave(node * self){
 		
 		memset(buffer, '\0', _SIZE_MAX_);
 		n = recvfrom(fd,buffer,_SIZE_MAX_,0,(struct sockaddr*)&self->udp_server,&addrlen);
-		if(n==-1)exit(1);
 		sprintf(message, "Received from <%s:%hu> the message: %s\n", inet_ntoa(self->udp_server.sin_addr), ntohs(self->udp_server.sin_port), buffer);
 		print_verbose(message);
 		
@@ -349,7 +363,7 @@ int leave(node * self){
 		sprintf(buffer, "CON %d %s %d\n", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
 		n = write(self->fd.predi, buffer, _SIZE_MAX_);
 		if(n==-1)exit(1);
-		sprintf(message, "Sent to <predi>: %s\n", buffer);
+		sprintf(message, "Sent to <predi>: %s", buffer);
 		print_verbose(message);
 		close(self->fd.succi);
 		close(self->fd.predi);
@@ -401,7 +415,8 @@ int switch_listen(char * command, int fd, node * self){
 		self->predi.id = id;
 		self->predi.addr = getIP(id_ip, id_tcp);
 		self->fd.predi = fd;
-		sprintf(message,"Opening <predi> socket: %d\n", self->fd.predi);
+		sprintf(message, "Closing <outside node> socket: %d\n", fd);
+		sprintf(message, "Opening <predi> socket: %d\n", self->fd.predi);
 		print_verbose(message);
 		
 		if(self->succi.id == -1){
@@ -461,13 +476,15 @@ int switch_listen(char * command, int fd, node * self){
 				sprintf(buffer, "SUCC %d %s %d\n", id, id_ip, id_tcp);
 				n = write(fd, buffer, _SIZE_MAX_);
 				err = 12;
-				sprintf(message, "Sent to <outside node>: %s\n", buffer);
+				sprintf(message, "Sent to <outside node>: %s", buffer);
 				print_verbose(message);
-
+				close(fd);
+				sprintf(message, "Closing <outside node> socket: %d", fd);
+				print_verbose(message);
 			}
 		}else{
 			n = write(self->fd.predi, command, _SIZE_MAX_);
-			sprintf(message, "Sent to <predi>: %s\n", command);
+			sprintf(message, "Sent to <predi>: %s", command);
 			print_verbose(message);
 			err = 0;
 		}

@@ -31,7 +31,7 @@ int main(int argc, char ** argv){
 	if(bind(self.fd.listener, (struct sockaddr*)&self.id.addr, addrlen) == -1) exit(1);
 	if(listen(self.fd.listener, 5) == -1) exit(1);
 	
-	print_interface(&self, 0);  // Interface Utilizador
+	print_interface(0);  // Interface Utilizador
 	state = idle;
 	while(1){
 		FD_ZERO(&rfds);
@@ -48,10 +48,8 @@ int main(int argc, char ** argv){
 			FD_SET(self.fd.succi, &rfds);
 			if(self.fd.succi > maxfd) maxfd = self.fd.succi;
 		}
-		
-		// Sempre que se fizer close tem de se colocar self.fd.* = -1
-				
-		print_interface(&self, 1);
+
+		print_interface(1);
 		n = select(maxfd+1, &rfds, (fd_set *) NULL, (fd_set *) NULL, (struct timeval *) NULL);
 		if (n <= 0){
 			printf("Error: Select\n");
@@ -70,6 +68,8 @@ int main(int argc, char ** argv){
 				printf("Error: Accept\n");
 				exit(0);
 			}
+			sprintf(message, "Opening <outside node> socket: %d\n", fd_aux);
+			print_verbose(message);
 			n = read(fd_aux, buffer, _SIZE_MAX_);
 			sprintf(message, "Received from <outside node>: %s", buffer);
 			print_verbose(message);
@@ -80,7 +80,7 @@ int main(int argc, char ** argv){
 		
 		if (FD_ISSET(self.fd.predi, &rfds) && (self.fd.predi != -1)){
 			n = read(self.fd.predi, buffer, _SIZE_MAX_);
-			sprintf(message, "Received for <predi>: %s", buffer);
+			sprintf(message, "Received from <predi>: %s", buffer);
 			print_verbose(message);
 			err = switch_listen(buffer, -1, &self);
 			memset((void *) buffer, (int) '\0', _SIZE_MAX_); 
