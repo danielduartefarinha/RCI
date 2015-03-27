@@ -1,5 +1,18 @@
 #include "aux.h"
 
+/******************************************************************************
+ * Print_Interface()
+ *
+ * Argumentos:	n				- inteiro para escolha de modo de impressão
+ * 
+ * Retorna: (void)
+ * 
+ * Side-Effects: nenhum
+ *
+ * Descrição: 	Imprime a interface do utilizador. 
+ * 
+ *****************************************************************************/
+
 void print_interface(int n){
 	switch (n){
 		case 0:
@@ -28,6 +41,20 @@ void print_interface(int n){
 	
 }
 
+/******************************************************************************
+ * getIP()
+ *
+ * Argumentos:	ip				- 
+ * 				port			-
+ * 
+ * Retorna: (void)
+ * 
+ * Side-Effects: nenhum
+ *
+ * Descrição: 	Imprime a interface do utilizador. 
+ * 
+ *****************************************************************************/
+
 struct sockaddr_in getIP(char * ip, int port){
 	struct hostent *h;
 	struct in_addr *a, *b;
@@ -46,6 +73,20 @@ struct sockaddr_in getIP(char * ip, int port){
 
 	return addr;
 }
+
+/******************************************************************************
+ * Init_Node()
+ * 
+ * Argumentos:	argv				- 
+ * 				argc 				-
+ * 
+ * Retorna: node
+ * 
+ * Side-Effects: nenhum
+ *
+ * Descrição: 	Inicia a estrutura do nó com os respectivos dados.
+ * 
+ *****************************************************************************/
 
 node Init_Node(char ** argv, int argc){
 	node new;
@@ -114,14 +155,55 @@ node Init_Node(char ** argv, int argc){
 	return new;
 }
 
+/******************************************************************************
+ * dist()
+ *
+ * Argumentos:	k				- valor do identificador que se quer usar
+ * 				id				- valor do identificador do nó inserido 
+ * 
+ * Retorna: int
+ * 
+ * Side-Effects: nenhum
+ *
+ * Descrição: 	Retorna a distância entre dois inteiros
+ * 
+ *****************************************************************************/
+
 int dist(int k, int id){
 	if (id >= k) return (id - k);
 	else return (64 + id - k);
 }
 
+/******************************************************************************
+ * print_verbose()
+ *
+ * Argumentos:	message				- string a imprimir no terminal
+ * 
+ * Retorna: (void)
+ * 
+ * Side-Effects: nenhum
+ *
+ * Descrição: 	Imprime mensagem no terminal em modo verbose. 
+ * 
+ *****************************************************************************/
+
 void print_verbose(char * message){
 	if (verbose) printf("%s", message);
 }
+
+/******************************************************************************
+ * search()
+ *
+ * Argumentos:	self			- estrutura com a informação do nó
+ * 				k				- valor do identificador que se quer usar
+ * 
+ * Retorna: (void)
+ * 
+ * Side-Effects: nenhum
+ *
+ * Descrição: 	verfica se o nó é responsável pelo identificador requerido.
+ * 
+ *****************************************************************************/
 
 int search(node * self, int k){
 	int n;
@@ -139,6 +221,22 @@ int search(node * self, int k){
 		return 0;
 	}
 }
+
+/******************************************************************************
+ * join_succi()
+ *
+ * Argumentos:	self			- estrutura com a informação do nó
+ * 				new				- valor que define se tem informações do
+ * 								  succi ou não.
+ * 
+ * Retorna: int
+ * 
+ * Side-Effects: nenhum
+ *
+ * Descrição:	Envia mensagem para o succi para se ligar e caso não tenha succi
+ * 				envia ao nó de arranque a perguntar quem será o seu succi.
+ * 
+ *****************************************************************************/
 
 int join_succi(node * self, int new){
 	int err, addrlen;
@@ -176,6 +274,23 @@ int join_succi(node * self, int new){
 	return(0);
 	
 }
+
+/******************************************************************************
+ * join()
+ *
+ * Argumentos:	self			- estrutura com a informação do nó
+ * 				x				- identificador do anel
+ * 
+ * Retorna: int
+ * 
+ * Side-Effects: nenhum
+ *
+ * Descrição: 	Verifica se o anel está inserido no servidor de arranque.
+ * 				Caso não esteja inserido, cria o anel com as informações do no.
+ * 				Caso já exista anel, actualiza o estado succi com as informaçoes
+ * 				recebidas e chama a função join_succi com estas informaçoes.
+ * 
+ *****************************************************************************/
 
 int join(node * self, int x){
 	int fd, addrlen, n, j, tcp, err;
@@ -243,6 +358,19 @@ int join(node * self, int x){
 	return err;
 }
 
+/******************************************************************************
+ * show()
+ *
+ * Argumentos:	self			- estrutura com a informação do nó
+ * 
+ * Retorna: (void)
+ * 
+ * Side-Effects: nenhum
+ *
+ * Descrição: 	Imprime no terminal as informações do nó
+ * 
+ *****************************************************************************/
+
 int show(node * self){
 	print_interface(2);
 	
@@ -288,6 +416,24 @@ int show(node * self){
 	print_interface(2);
 	return 0;
 }
+
+/******************************************************************************
+ * leave()
+ *
+ * Argumentos:	self			- estrutura com a informação do nó
+ * 
+ * Retorna: (void)
+ * 
+ * Side-Effects: nenhum
+ *
+ * Descrição: 	Função para sair do anel. 
+ * 				Verifica se é o no de arranque, caso seja torna o seu succi
+ * 				o novo nó de arranque.
+ * 				Apaga o anel se for o último nó.
+ * 				Envia mensagem CON para o predecessor de maneira a ele se ligar
+ * 				ao seu sucessor.
+ * 
+ *****************************************************************************/
 
 int leave(node * self){	
 	int fd, addrlen, n;
