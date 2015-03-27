@@ -13,12 +13,13 @@ void print_interface(node * self, int n){
 			printf("|search k                                                |\n");
 			printf("|exit                                                    |\n");
 			printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+			break;
 		case 1:
 			sprintf(message, "*************************VERBOSE**************************\n");
 			print_verbose(message);
 			break;
 		case 2:
-			printf( "**********************************************************\n");
+			printf( "************\n");
 			break;
 		default:
 			break;
@@ -118,7 +119,7 @@ int search(node * self, int k){
 	}else{
 		sprintf(buffer, "QRY %d %d\n", self->id.id, k);
 		n = write(self->fd.succi, buffer, _SIZE_MAX_);
-		sprintf(message, "Sending to <succi>: %s", buffer);
+		sprintf(message, "Sent to <succi>: %s", buffer);
 		print_verbose(message);
 		return 0;
 	}
@@ -155,7 +156,7 @@ int join_succi(node * self, int new){
 		
 	write(self->fd.succi, buffer, (size_t) _SIZE_MAX_);
 	
-	sprintf(message, "Sending to %d [%s %hu]: %s", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port), buffer);
+	sprintf(message, "Sent to %d [%s %hu]: %s", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port), buffer);
 	print_verbose(message);
 	return(0);
 	
@@ -233,41 +234,43 @@ int show(node * self){
 	if (verbose){
 		if(self->boot) printf("BOOT NODE\n");
 		if(self->ring != -1){
-			printf("Ring: %d\n", self->ring);
-			printf("Node:  %d     [%s:%hu]\n", self->id.id, inet_ntoa(self->id.addr.sin_addr), ntohs(self->id.addr.sin_port));
+			printf("Ring:  %4d\n", self->ring);
+			printf("Node:  %4d     [%s:%hu]\n", self->id.id, inet_ntoa(self->id.addr.sin_addr), ntohs(self->id.addr.sin_port));
 		}else{
-			printf("Ring: NULL\n");
+			printf("Ring:  NULL\n");
 		}
 		if(self->predi.id != -1){
-			printf("Predi: %d     [%s:%hu]\n", self->predi.id, inet_ntoa(self->predi.addr.sin_addr), ntohs(self->predi.addr.sin_port));
+			printf("Predi: %4d     [%s:%hu]\n", self->predi.id, inet_ntoa(self->predi.addr.sin_addr), ntohs(self->predi.addr.sin_port));
 		}else{
 			printf("Predi: NULL\n");
 		}
 		if(self->succi.id != -1){
-			printf("Predi: %d     [%s:%hu]\n", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
+			printf("Succi: %4d     [%s:%hu]\n", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
 		}else{
-			printf("SUCCI: NULL\n");
+			printf("Succi: NULL\n");
 		}
 	}else{
 		if(self->ring != -1){
-			printf("Ring: %d\n", self->ring);
-			printf("Node: %d\n", self->id.id);
+			printf("Ring:  %4d\n", self->ring);
+			printf("Node:  %4d\n", self->id.id);
 		}else{
-			printf("Ring: NULL\n");
-			printf("Node: NULL\n");
+			printf("Ring:  NULL\n");
+			printf("Node:  NULL\n");
 		}
 
 		if(self->predi.id != -1){
-			printf("Predi: %d\n", self->predi.id);
+			printf("Predi: %4d\n", self->predi.id);
 		}else{
 			printf("Predi: NULL\n");
 		}
 		if(self->succi.id != -1){
-			printf("Succi: %d\n", self->succi.id);
+			printf("Succi: %4d\n", self->succi.id);
 		}else{
-			printf("Succi: NULL");
+			printf("Succi: NULL\n");
 		}
 	}
+	
+	print_interface(self, 2);
 	return 0;
 }
 
@@ -337,7 +340,7 @@ int leave(node * self){
 			
 			n = write(self->fd.succi, "BOOT\n", _SIZE_MAX_);
 			if(n==-1)exit(1);
-			sprintf(message, "Sent to <%s:%hu> the message: %s", inet_ntoa(self->udp_server.sin_addr), ntohs(self->udp_server.sin_port), buffer);
+			sprintf(message, "Sent to <succi>: BOOT\n");
 			print_verbose(message);
 			self->boot = 0;
 		}
@@ -346,12 +349,12 @@ int leave(node * self){
 		sprintf(buffer, "CON %d %s %d\n", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
 		n = write(self->fd.predi, buffer, _SIZE_MAX_);
 		if(n==-1)exit(1);
-		sprintf(message, "Sending to <predi>: %s\n", buffer);
+		sprintf(message, "Sent to <predi>: %s\n", buffer);
 		print_verbose(message);
 		close(self->fd.succi);
 		close(self->fd.predi);
-		printf("Closing <predi> socket: %d\n", self->fd.predi);
-		printf("Closing <succi> socket: %d\n", self->fd.succi);
+		sprintf(message, "Closing <predi> socket: %d\nClosing <succi> socket: %d\n", self->fd.predi, self->fd.succi);
+		print_verbose(message);
 		self->fd.predi = -1;
 		self->fd.succi = -1;
 		self->predi.id = -1;
@@ -389,7 +392,7 @@ int switch_listen(char * command, int fd, node * self){
 			memset((void*)buffer, (int)'\0', _SIZE_MAX_);
 			sprintf(buffer, "CON %d %s %d\n", id, id_ip, id_tcp);
 			write(self->fd.predi, buffer, _SIZE_MAX_);
-			sprintf(message, "Sent to <predi> the message: %s\n", buffer);
+			sprintf(message, "Sent to <predi> the message: %s", buffer);
 			print_verbose(message);
 			sprintf(message, "Closing <predi> socket: %d\n", self->fd.predi);
 			print_verbose(message);
@@ -415,7 +418,7 @@ int switch_listen(char * command, int fd, node * self){
 			close(self->fd.predi);
 			sprintf(message, "Closing <predi> socket: %d\n", self->fd.predi);
 			print_verbose(message);
-			sprintf(message, "Close <succi> socket: %d\n", self->fd.succi);
+			sprintf(message, "Closing <succi> socket: %d\n", self->fd.succi);
 			print_verbose(message);
 			self->succi.id = -1;
 			self->predi.id = -1;
@@ -438,11 +441,11 @@ int switch_listen(char * command, int fd, node * self){
 			print_verbose(message);
 			sprintf(buffer, "RSP %d %d %d %s %d\n", id, k, self->id.id, inet_ntoa(self->id.addr.sin_addr), ntohs(self->id.addr.sin_port));
 			n = write(self->fd.predi, buffer, _SIZE_MAX_);
-			sprintf(message, "Sending to <predi>: %s", buffer);
+			sprintf(message, "Sent to <predi>: %s", buffer);
 			print_verbose(message);
 		}else{
 			n = write(self->fd.succi, command, _SIZE_MAX_);
-			sprintf(message, "Sending to <succi>: %s", command);
+			sprintf(message, "Sent to <succi>: %s", command);
 			print_verbose(message);
 		}
 	}	
@@ -458,13 +461,13 @@ int switch_listen(char * command, int fd, node * self){
 				sprintf(buffer, "SUCC %d %s %d\n", id, id_ip, id_tcp);
 				n = write(fd, buffer, _SIZE_MAX_);
 				err = 12;
-				sprintf(message, "Sending to <outside node>: %s\n", buffer);
+				sprintf(message, "Sent to <outside node>: %s\n", buffer);
 				print_verbose(message);
 
 			}
 		}else{
 			n = write(self->fd.predi, command, _SIZE_MAX_);
-			sprintf(message, "Sending to <predi>: %s\n", command);
+			sprintf(message, "Sent to <predi>: %s\n", command);
 			print_verbose(message);
 			err = 0;
 		}
@@ -475,7 +478,7 @@ int switch_listen(char * command, int fd, node * self){
 			print_verbose(message);
 			sprintf(buffer, "SUCC %d %s %d\n", self->id.id, inet_ntoa(self->id.addr.sin_addr),ntohs(self->id.addr.sin_port));
 			n = write(fd, buffer, _SIZE_MAX_);
-			sprintf(message, "Sending to <outside node>: %s\n", buffer);
+			sprintf(message, "Sent to <outside node>: %s", buffer);
 			print_verbose(message);
 		}else{
 			n = sscanf(command, "%*s %d", &k);
@@ -484,7 +487,7 @@ int switch_listen(char * command, int fd, node * self){
 			if(search(self, k) == 1){
 				sprintf(buffer, "SUCC %d %s %d\n", self->id.id, inet_ntoa(self->id.addr.sin_addr),ntohs(self->id.addr.sin_port));
 				n = write(fd, buffer, _SIZE_MAX_);
-				sprintf(message, "Sending to <outside node>: %s\n", buffer);
+				sprintf(message, "Sent to <outside node>: %s", buffer);
 				print_verbose(message);
 			}else{
 				err = -10;
