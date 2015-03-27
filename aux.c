@@ -479,7 +479,7 @@ int switch_listen(char * command, int fd, node * self){
 				sprintf(message, "Sent to <outside node>: %s", buffer);
 				print_verbose(message);
 				close(fd);
-				sprintf(message, "Closing <outside node> socket: %d", fd);
+				sprintf(message, "Closing <outside node> socket: %d\n", fd);
 				print_verbose(message);
 			}
 		}else{
@@ -518,6 +518,7 @@ int switch_listen(char * command, int fd, node * self){
 			printf("Error: There already exists a node with same identifier\n");
 					
 			self->succi.id = -1;
+			self->id.id = -1;
 			self->ring = -1;
 			close(self->fd.succi);
 			sprintf(message, "Closing <succi> socket: %d\n", self->fd.succi);
