@@ -14,58 +14,13 @@
 #ifndef AUX_H
 #define AUX_H
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <netdb.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <string.h>
-#include <unistd.h>
-#include <signal.h>
-
-#define _SIZE_MAX_ 128
-
-static int errno;
-static int verbose;
-static char message[_SIZE_MAX_];
-
-typedef struct node_data{
-	int  id;	
-	struct sockaddr_in addr;
-} node_data;
-
-typedef struct sockets{
-	int keyboard;
-	int succi;
-	int predi;
-	int listener;
-} sockets;
-
-typedef struct node{
-	node_data id;
-	node_data predi;
-	node_data succi;
-	struct sockaddr_in udp_server;
-	int boot;
-	int ring;
-	sockets fd;
-} node;
+#include "node.h"
 
 void print_interface(int n);
 struct sockaddr_in getIP(char * ip, int port);
 node Init_Node(char ** argv, int argc);
 int dist(int k, int id);
 void print_verbose(char * message);
-int search(node * self, int k);
-int join_succi(node * self, int service);
-int join(node * self, int x);
-int show(node * self);
-int leave(node * self);
-void exit_app(node * self);
-int switch_listen(char * command, int fd, node * self);
-int switch_cmd(char * command, node * self);
 
 #endif
 
