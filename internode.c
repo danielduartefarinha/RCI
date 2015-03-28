@@ -1,5 +1,20 @@
 #include "internode.h"
 
+/******************************************************************************
+ * switch_listen()
+ *
+ * Arguments:	command			        - Command received by socket
+ * 				fd						- File descriptor
+ *              self                   	- Pointer to struct with node informations 				
+ *
+ * Returns: (int)
+ * 
+ * Side-Effects: none
+ *
+ * Description: 	Function that analyses all messages sent by other nodes
+ * 
+ *****************************************************************************/
+
 int switch_listen(char * command, int fd, node * self){
 	char buffer[_SIZE_MAX_], id_ip[_SIZE_MAX_];	
 	int n, id, id_tcp, k, j, err;

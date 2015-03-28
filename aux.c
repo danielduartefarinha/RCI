@@ -3,13 +3,13 @@
 /******************************************************************************
  * print_verbose()
  *
- * Argumentos:	message				- string a imprimir no terminal
+ * Arguments:	message				- String to be printed in the terminal
  * 
- * Retorna: (void)
+ * Returns: (void)
  * 
- * Side-Effects: nenhum
+ * Side-Effects: none
  *
- * Descrição: 	Imprime mensagem no terminal em modo verbose. 
+ * Description: 	Prints the message in the terminal if in verbose mode. 
  * 
  *****************************************************************************/
 
@@ -20,16 +20,17 @@ void print_verbose(char * message){
 /******************************************************************************
  * Print_Interface()
  *
- * Argumentos:	n				- inteiro para escolha de modo de impressão
+ * Arguments:	n				- Control integer
  * 
- * Retorna: (void)
+ * Returns: (void)
  * 
- * Side-Effects: nenhum
+ * Side-Effects: none
  *
- * Descrição: 	Imprime a interface do utilizador. 
- * 
+ * Description: 	If the control integer is 0, the menu interface is printed.
+ * 					Otherwise auxiliary divisions are printed
+ * 					 
  *****************************************************************************/
-
+ 
 void print_interface(int n){
 	switch (n){
 		case 0:
@@ -54,21 +55,19 @@ void print_interface(int n){
 		default:
 			break;
 	}
-	
-	
 }
 
 /******************************************************************************
  * getIP()
  *
- * Argumentos:	ip				- 
- * 				port			-
+ * Arguments:	ip				- IP address in user format
+ * 				port			- Port in user format
  * 
- * Retorna: (void)
+ * Returns: (struct sockaddr_in)
  * 
- * Side-Effects: nenhum
+ * Side-Effects: none
  *
- * Descrição: 	Imprime a interface do utilizador. 
+ * Description: 	Function used to get the ip address in network format 
  * 
  *****************************************************************************/
 
@@ -94,14 +93,14 @@ struct sockaddr_in getIP(char * ip, int port){
 /******************************************************************************
  * Init_Node()
  * 
- * Argumentos:	argv				- 
- * 				argc 				-
+ * Arguments:	argv				- 	Arguments on program call
+ * 				argc 				-	Number of arguments on program call
  * 
- * Retorna: node
+ * Returns: (node)
  * 
- * Side-Effects: nenhum
+ * Side-Effects: none
  *
- * Descrição: 	Inicia a estrutura do nó com os respectivos dados.
+ * Description: 	Initialize node with its respective data
  * 
  *****************************************************************************/
 
@@ -175,14 +174,14 @@ node Init_Node(char ** argv, int argc){
 /******************************************************************************
  * dist()
  *
- * Argumentos:	k				- valor do identificador que se quer usar
- * 				id				- valor do identificador do nó inserido 
+ * Arguments:	k				- Value of the identifier that we want to find
+ * 				id				- Value of identifier of the inserted node
  * 
- * Retorna: int
+ * Returns: (int)
  * 
- * Side-Effects: nenhum
+ * Side-Effects: none
  *
- * Descrição: 	Retorna a distância entre dois inteiros
+ * Description: 	 Returns the distance between two nodes in a ring with 64 nodes
  * 
  *****************************************************************************/
 
@@ -194,13 +193,13 @@ int dist(int k, int id){
 /******************************************************************************
  * show()
  *
- * Argumentos:	self			- estrutura com a informação do nó
+ * Arguments:	self			- Pointer to struct with node informations
  * 
- * Retorna: (void)
+ * Returns: (int)
  * 
- * Side-Effects: nenhum
+ * Side-Effects: none
  *
- * Descrição: 	Imprime no terminal as informações do nó
+ * Description: 	Prints in the terminal most of the node's information
  * 
  *****************************************************************************/
 
@@ -249,5 +248,4 @@ int show(node * self){
 	print_interface(2);
 	return 0;
 }
-
 

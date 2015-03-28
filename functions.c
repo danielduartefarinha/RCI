@@ -3,14 +3,16 @@
 /******************************************************************************
  * search()
  *
- * Argumentos:	self			- estrutura com a informação do nó
- * 				k				- valor do identificador que se quer usar
+ * Arguments:	self			- Pointer to struct with node informations
+ * 				k				- Value of the node identifier to find
  * 
- * Retorna: (void)
+ * Returns: (int)
  * 
- * Side-Effects: nenhum
+ * Side-Effects: none
  *
- * Descrição: 	verfica se o nó é responsável pelo identificador requerido.
+ * Description: 	Searches for the node that is responsible for the node
+ * 	 				with the specified identifier
+ * 					Verifies if the node is responsible for	the identifier required.
  * 
  *****************************************************************************/
 
@@ -34,18 +36,20 @@ int search(node * self, int k){
 /******************************************************************************
  * join_succi()
  *
- * Argumentos:	self			- estrutura com a informação do nó
- * 				new				- valor que define se tem informações do
- * 								  succi ou não.
+ * Arguments:	self			- Pointer to struct with node informations
+ * 				new				- Value that defines if function is called
+ * 									with succi already defined, or not. 
+ * 								  
  * 
- * Retorna: int
+ * Returns: (int)
  * 
- * Side-Effects: nenhum
+ * Side-Effects: none
  *
- * Descrição:	Envia mensagem para o succi para se ligar e caso não tenha succi
- * 				envia ao nó de arranque a perguntar quem será o seu succi.
+ *  Description:	Function called to join to a node, knowing it is succi.
+ * 					Function also called when first contacting the ring.
  * 
  *****************************************************************************/
+
 
 int join_succi(node * self, int new){
 	int err, addrlen;
@@ -87,17 +91,17 @@ int join_succi(node * self, int new){
 /******************************************************************************
  * join()
  *
- * Argumentos:	self			- estrutura com a informação do nó
- * 				x				- identificador do anel
+ * Arguments:	self			- Pointer to struct with node informations
+ * 				x				- Identifier of the ring
+ *  
+ * Returns: (int)
  * 
- * Retorna: int
- * 
- * Side-Effects: nenhum
+ * Side-Effects: none
  *
- * Descrição: 	Verifica se o anel está inserido no servidor de arranque.
- * 				Caso não esteja inserido, cria o anel com as informações do no.
- * 				Caso já exista anel, actualiza o estado succi com as informaçoes
- * 				recebidas e chama a função join_succi com estas informaçoes.
+ * Description: Check if the ring is already in the server.
+ * 				If the ring exists, udpdate the state succi with all informations
+ * 				received and call the function join_succi with this informations.
+ * 				Otherwise, create the ring with all node informations.	
  * 
  *****************************************************************************/
 
@@ -171,18 +175,16 @@ int join(node * self, int x){
 /******************************************************************************
  * leave()
  *
- * Argumentos:	self			- estrutura com a informação do nó
+ * Arguments:	self			- Pointer to struct with node informations
  * 
- * Retorna: (void)
+ * Returns: (int)
  * 
- * Side-Effects: nenhum
+ * Side-Effects: none
  *
- * Descrição: 	Função para sair do anel. 
- * 				Verifica se é o no de arranque, caso seja torna o seu succi
- * 				o novo nó de arranque.
- * 				Apaga o anel se for o último nó.
- * 				Envia mensagem CON para o predecessor de maneira a ele se ligar
- * 				ao seu sucessor.
+ * Description: Function to leave the ring.
+ * 				Check if it's boot node and if true, apoints succi as boot.
+ * 				Erase the ring if it is the last node on the ring.
+ * 				Send CON to its predi to connect to its succi.
  * 
  *****************************************************************************/
 
@@ -279,6 +281,20 @@ int leave(node * self){
 	return 0;
 }
 
+/******************************************************************************
+ * exit_app()
+ *
+ * Arguments:	self			- Pointer to struct with node informations
+ * 
+ * Returns: (void)
+ * 
+ * Side-Effects: nenhum
+ *
+ * Description:   Function to close the program.	
+ * 				  Call the fuction leave and close the program	
+ * 
+ *****************************************************************************/
+
 void exit_app(node * self){
 	leave(self);
 	// Fazer frees à memória alocada
@@ -286,3 +302,4 @@ void exit_app(node * self){
 	print_verbose(message);
 	exit(0);
 }
+

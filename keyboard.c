@@ -1,5 +1,19 @@
 #include "keyboard.h"
 
+/******************************************************************************
+ * switch_cmd()
+ *
+ * Arguments:	command			        - Command received by keyboard
+ *              self                   	- Pointer to struct with node informations 				
+ *
+ * Returns: (int)
+ * 
+ * Side-Effects: none
+ *
+ * Description: 	Function that analyses all commands sent by user
+ * 
+ *****************************************************************************/
+
 int switch_cmd(char * command, node * self){
 	char buffer[_SIZE_MAX_], succiIP[_SIZE_MAX_];
 	int n, err, x, succi, succiTCP;
