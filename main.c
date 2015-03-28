@@ -72,39 +72,44 @@ int main(int argc, char ** argv){
 			sprintf(message, "Opening <outside node> socket: %d\n", fd_aux);
 			print_verbose(message);
 			n = read(fd_aux, buffer, _SIZE_MAX_);
-			sprintf(message, "Received from <outside node>: %s", buffer);
-			print_verbose(message);
-			err = switch_listen(buffer, fd_aux, &self);
-			if (err == -10) state = busy;
-			memset((void *) buffer, (int) '\0', _SIZE_MAX_);
+			if(n != 0){
+				sprintf(message, "Received from <outside node>: %s", buffer);
+				print_verbose(message);
+				err = switch_listen(buffer, fd_aux, &self);
+				if (err == -10) state = busy;
+				memset((void *) buffer, (int) '\0', _SIZE_MAX_);
+			}
 		}			
 		
 		if (FD_ISSET(self.fd.predi, &rfds) && (self.fd.predi != -1)){
 			n = read(self.fd.predi, buffer, _SIZE_MAX_);
-			sprintf(message, "Received from <predi>: %s", buffer);
-			print_verbose(message);
-			err = switch_listen(buffer, -1, &self);
-			memset((void *) buffer, (int) '\0', _SIZE_MAX_); 
+			if(n != 0){
+				sprintf(message, "Received from <predi>: %s", buffer);
+				print_verbose(message);
+				err = switch_listen(buffer, -1, &self);
+				memset((void *) buffer, (int) '\0', _SIZE_MAX_); 
+			}
 		}
 		
 		if (FD_ISSET(self.fd.succi, &rfds) && (self.fd.succi != -1)){
 			n = read(self.fd.succi, buffer, _SIZE_MAX_);
-			sprintf(message, "Received from <succi>: %s", buffer);
-			print_verbose(message);
-			switch (state){
-				case idle:
-					err = switch_listen(buffer, -1, &self);
-					break;
-				case busy:
-					err = switch_listen(buffer, fd_aux, &self);
-					if(err == 12) state = idle;
-					break;
-				default:
-					break;
+			if(n != 0){
+				sprintf(message, "Received from <succi>: %s", buffer);
+				print_verbose(message);
+				switch (state){
+					case idle:
+						err = switch_listen(buffer, -1, &self);
+						break;
+					case busy:
+						err = switch_listen(buffer, fd_aux, &self);
+						if(err == 12) state = idle;
+						break;
+					default:
+						break;
+				}
+				memset((void *) buffer, (int) '\0', _SIZE_MAX_); 			
 			}
-			memset((void *) buffer, (int) '\0', _SIZE_MAX_); 			
 		}
-		
 	}
 	exit(0);
 }

@@ -167,64 +167,6 @@ int join(node * self, int x){
 	return err;
 }
 
-/******************************************************************************
- * show()
- *
- * Argumentos:	self			- estrutura com a informação do nó
- * 
- * Retorna: (void)
- * 
- * Side-Effects: nenhum
- *
- * Descrição: 	Imprime no terminal as informações do nó
- * 
- *****************************************************************************/
-
-int show(node * self){
-	print_interface(2);
-	
-	if (verbose){
-		if(self->boot) printf("BOOT NODE\n");
-		if(self->ring != -1){
-			printf("Ring:  %4d\n", self->ring);
-			printf("Node:  %4d     [%s:%hu]\n", self->id.id, inet_ntoa(self->id.addr.sin_addr), ntohs(self->id.addr.sin_port));
-		}else{
-			printf("Ring:  NULL\n");
-		}
-		if(self->predi.id != -1){
-			printf("Predi: %4d     [%s:%hu]\n", self->predi.id, inet_ntoa(self->predi.addr.sin_addr), ntohs(self->predi.addr.sin_port));
-		}else{
-			printf("Predi: NULL\n");
-		}
-		if(self->succi.id != -1){
-			printf("Succi: %4d     [%s:%hu]\n", self->succi.id, inet_ntoa(self->succi.addr.sin_addr), ntohs(self->succi.addr.sin_port));
-		}else{
-			printf("Succi: NULL\n");
-		}
-	}else{
-		if(self->ring != -1){
-			printf("Ring:  %4d\n", self->ring);
-			printf("Node:  %4d\n", self->id.id);
-		}else{
-			printf("Ring:  NULL\n");
-			printf("Node:  NULL\n");
-		}
-
-		if(self->predi.id != -1){
-			printf("Predi: %4d\n", self->predi.id);
-		}else{
-			printf("Predi: NULL\n");
-		}
-		if(self->succi.id != -1){
-			printf("Succi: %4d\n", self->succi.id);
-		}else{
-			printf("Succi: NULL\n");
-		}
-	}
-	
-	print_interface(2);
-	return 0;
-}
 
 /******************************************************************************
  * leave()

@@ -12,7 +12,7 @@ int switch_listen(char * command, int fd, node * self){
 		if (n != 3) return 1; //codigo de erro
 		
 		
-		if(self->predi.id != -1){
+		if(self->predi.id != -1 && self->succi.id != id){
 			memset((void*)buffer, (int)'\0', _SIZE_MAX_);
 			sprintf(buffer, "CON %d %s %d\n", id, id_ip, id_tcp);
 			write(self->fd.predi, buffer, _SIZE_MAX_);
@@ -26,6 +26,7 @@ int switch_listen(char * command, int fd, node * self){
 		self->predi.addr = getIP(id_ip, id_tcp);
 		self->fd.predi = fd;
 		sprintf(message, "Closing <outside node> socket: %d\n", fd);
+		print_verbose(message);
 		sprintf(message, "Opening <predi> socket: %d\n", self->fd.predi);
 		print_verbose(message);
 		
@@ -39,15 +40,17 @@ int switch_listen(char * command, int fd, node * self){
 		n = sscanf(command, "%*s %d %s %d", &id, id_ip, &id_tcp);
 		if (n != 3) return 1; //codigo de erro
 		if(self->id.id == id){
-			close(self->fd.succi);
-			close(self->fd.predi);
-			sprintf(message, "Closing <predi> socket: %d\n", self->fd.predi);
-			print_verbose(message);
+			if(self->fd.predi != -1){
+				sprintf(message, "Closing <predi> socket: %d\n", self->fd.predi);
+				print_verbose(message);
+				close(self->fd.predi);
+				self->fd.predi = -1;
+			}
 			sprintf(message, "Closing <succi> socket: %d\n", self->fd.succi);
-			print_verbose(message);
+			print_verbose(message);			
+			close(self->fd.succi);
 			self->succi.id = -1;
 			self->predi.id = -1;
-			self->fd.predi = -1;
 			self->fd.succi = -1;
 		}else{
 			self->succi.id = id;
@@ -107,6 +110,9 @@ int switch_listen(char * command, int fd, node * self){
 			n = write(fd, buffer, _SIZE_MAX_);
 			sprintf(message, "Sent to <outside node>: %s", buffer);
 			print_verbose(message);
+			close(fd);
+			sprintf(message, "Closing <outside node> socket: %d\n", fd);
+			print_verbose(message);			
 		}else{
 			n = sscanf(command, "%*s %d", &k);
 			if(n != 1) return -1; //codigo de erro
@@ -116,6 +122,9 @@ int switch_listen(char * command, int fd, node * self){
 				n = write(fd, buffer, _SIZE_MAX_);
 				sprintf(message, "Sent to <outside node>: %s", buffer);
 				print_verbose(message);
+				close(fd);
+				sprintf(message, "Closing <outside node> socket: %d\n", fd);
+				print_verbose(message);					
 			}else{
 				err = -10;
 			}
@@ -146,7 +155,7 @@ int switch_listen(char * command, int fd, node * self){
 	if(strcmp(buffer, "BOOT") == 0){
 		self->boot = 1;
 		close(self->fd.predi);
-		printf(message, "Closing <predi> socket: %d\n", self->fd.predi);
+		sprintf(message, "Closing <predi> socket: %d\n", self->fd.predi);
 		print_verbose(message);
 		self->fd.predi = -1;
 		self->predi.id = -1;

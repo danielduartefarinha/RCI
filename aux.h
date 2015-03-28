@@ -16,11 +16,12 @@
 
 #include "node.h"
 
+void print_verbose(char * message);
 void print_interface(int n);
 struct sockaddr_in getIP(char * ip, int port);
 node Init_Node(char ** argv, int argc);
 int dist(int k, int id);
-void print_verbose(char * message);
+int show(node * self);
 
 #endif
 
