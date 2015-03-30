@@ -1,5 +1,5 @@
-ddt: main.o keyboard.o internode.o functions.o aux.o
-	gcc -o ddt main.o keyboard.o internode.o functions.o aux.o -g
+ddt: main.o keyboard.o internode.o functions.o aux1.o
+	gcc -o ddt main.o keyboard.o internode.o functions.o aux1.o -g
 	
 main.o: main.c keyboard.h internode.h
 	gcc -c main.c -g
@@ -13,8 +13,8 @@ internode.o: internode.c internode.h
 functions.o: functions.c functions.h
 	gcc -c functions.c -g
 	
-aux.o: aux.c aux.h
-	gcc -c aux.c -g
+aux1.o: aux1.c aux1.h
+	gcc -c aux1.c -g
 	
 clean:
 	rm *.o

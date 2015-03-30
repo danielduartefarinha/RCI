@@ -1,7 +1,7 @@
 #ifndef _FUNCTIONS_H_
 #define _FUNCTIONS_H_
 
-#include "aux.h"
+#include "aux1.h"
 
 int search(node * self, int k);
 int join_succi(node * self, int service);
